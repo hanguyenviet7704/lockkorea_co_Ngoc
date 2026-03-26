@@ -1,6 +1,6 @@
 export const environment = {
-    production: false,
-    apiUrl: 'http://localhost:8089/api/v1',
-    apiImage: 'http://localhost:8089/api/v1/products/images/',
+    production: true,
+    apiUrl: 'https://backend-production-a00f.up.railway.app/api/v1',
+    apiImage: 'https://backend-production-a00f.up.railway.app/api/v1/products/images/',
     newsDefaultImage: 'default-lock-news.jpg'
 };
