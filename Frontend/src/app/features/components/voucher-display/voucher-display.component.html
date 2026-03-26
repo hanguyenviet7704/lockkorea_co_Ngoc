@@ -1,0 +1,52 @@
+<p-toast></p-toast>
+<div class="voucher-display-container" *ngIf="!isLoading && vouchers.length > 0">
+  <h2 class="section-title">
+    <i class="pi pi-ticket"></i>
+    Voucher hiện có. Nhanh tay kẻo hết !
+  </h2>
+  <div class="vouchers-grid">
+    <div class="voucher-card" *ngFor="let voucher of vouchers">
+      <div class="voucher-content">
+        <div class="voucher-header">
+          <div class="voucher-title-section">
+            <h3 class="voucher-name">{{ voucher.name }}</h3>
+            <span class="discount-percent">Giảm {{ voucher.discount_percentage }}%</span>
+          </div>
+        </div>
+        <div class="voucher-conditions">
+          <span *ngIf="voucher.min_order_value && voucher.min_order_value > 0" class="condition-item">
+            <i class="pi pi-shopping-cart"></i>
+            Đơn tối thiểu {{ voucher.min_order_value | currency:'VND':'symbol-narrow':'1.0-0' }}
+          </span>
+          <span *ngIf="voucher.max_discount_amount && voucher.max_discount_amount > 0" class="condition-item">
+            <i class="pi pi-tag"></i>
+            Giảm tối đa {{ voucher.max_discount_amount | currency:'VND':'symbol-narrow':'1.0-0' }}
+          </span>
+          <div class="voucher-progress" *ngIf="voucher.remaining_quantity !== undefined && voucher.remaining_quantity !== null">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="getProgressPercentage(voucher)"></div>
+            </div>
+            <span class="progress-text">Còn lại: {{ voucher.remaining_quantity }}/{{ voucher.quantity }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="voucher-code-section">
+        <div class="code-wrapper">
+          <span class="voucher-code-label">Mã</span>
+          <span class="voucher-code">{{ voucher.code }}</span>
+        </div>
+        <button class="copy-btn" (click)="copyCode(voucher.code)" pTooltip="Sao chép mã">
+          <i class="pi pi-copy"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isLoading" class="loading-container">
+  <p>Đang tải voucher...</p>
+</div>
+
+<div *ngIf="!isLoading && vouchers.length === 0" class="no-vouchers-container">
+  <p>Hiện tại không có voucher nào.</p>
+</div> 

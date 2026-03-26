@@ -1,0 +1,78 @@
+<nav class="bottom-nav">
+  <a routerLink="/Home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+    <div class="icon-container">
+      <i class="pi pi-home"></i>
+    </div>
+    <span class="label">Trang chủ</span>
+  </a>
+
+  <a routerLink="/news" routerLinkActive="active" class="nav-item">
+    <div class="icon-container">
+      <i class="pi pi-book"></i>
+    </div>
+    <span class="label">Tin tức</span>
+  </a>
+
+  <a routerLink="/allProduct" routerLinkActive="active" class="nav-item">
+    <div class="icon-container">
+      <i class="pi pi-th-large"></i>
+    </div>
+    <span class="label">Sản phẩm</span>
+  </a>
+
+  <div class="nav-item" [class.active]="isSearchOpen" (click)="toggleSearch()">
+    <div class="icon-container">
+      <i class="pi pi-search"></i>
+    </div>
+    <span class="label">Tìm kiếm</span>
+  </div>
+</nav>
+
+<!-- Search Overlay -->
+<div class="search-overlay" [class.open]="isSearchOpen">
+  <div class="search-header">
+    <div class="search-input-wrapper">
+      <i class="pi pi-search search-icon"></i>
+      <input 
+        #searchInput
+        type="text" 
+        [(ngModel)]="searchKeyword"
+        (input)="onSearchInput($event)"
+        (keydown.enter)="onSearch()"
+        (focus)="showSuggestions = true"
+        placeholder="Tìm kiếm sản phẩm..." 
+        autocomplete="off"
+      >
+      <i class="pi pi-times clear-icon" *ngIf="searchKeyword" (click)="searchKeyword = ''"></i>
+    </div>
+    <button class="cancel-btn" (click)="toggleSearch()">Hủy</button>
+  </div>
+  
+  <div class="search-suggestions" *ngIf="showSuggestions && searchKeyword.trim().length > 0">
+    <!-- Product Suggestions -->
+    <div 
+      class="suggestion-item" 
+      *ngFor="let product of searchSuggestions"
+      (click)="selectProduct(product)">
+      <img [src]="getProductImageUrl(product)" 
+           [alt]="product.name" 
+           class="suggestion-image"
+           (error)="$any($event.target).src = 'assets/images/no-image.png'">
+      <div class="suggestion-info">
+        <div class="suggestion-name">{{ product.name }}</div>
+        <div class="suggestion-price">{{ product.price | currency:'VND':'symbol':'1.0-0' }}</div>
+      </div>
+    </div>
+    
+    <!-- No results message -->
+    <div class="no-results" *ngIf="searchSuggestions.length === 0 && searchKeyword.trim().length >= 2">
+      Không tìm thấy sản phẩm nào
+    </div>
+    
+    <!-- Search all results -->
+    <div class="suggestion-item search-all" (click)="onSearch()" *ngIf="searchKeyword.trim().length > 0">
+      <i class="pi pi-search"></i>
+      <span>Tìm kiếm "{{searchKeyword}}"</span>
+    </div>
+  </div>
+</div>

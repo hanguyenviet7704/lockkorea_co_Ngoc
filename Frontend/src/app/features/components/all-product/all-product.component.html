@@ -1,0 +1,239 @@
+<section class="allProduct" [class.admin-view]="roleId !== 1 && roleId !== 100" [class.customer-view]="roleId === 1 || roleId === 100">
+  <!-- header -->
+  <div class="allProduct-header">
+    <div class="container">
+      <div class="row justify-content-between align-items-center">
+        <div class="col-12 col-lg-6 col-md-6 mb-3">
+          <h3 class="mobile-title"> 
+            <span style="color: #c4c2c2">TRANG CHỦ / </span>
+            {{ isSearchMode ? 'KẾT QUẢ TÌM KIẾM: "' + searchKeyword + '"' : 'TẤT CẢ SẢN PHẨM' }}
+          </h3>
+        </div>
+        <!-- Mobile filters -->
+        <div class="d-md-none col-12 mb-4">
+          <div class="accordion mobile-filters" id="filterAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                  Bộ lọc
+                </button>
+              </h2>
+              <div id="filterCollapse" class="accordion-collapse collapse" data-bs-parent="#filterAccordion">
+                <div class="accordion-body">
+                  <div class="mb-4">
+                    <h5 class="filter-title">Danh mục</h5>
+                    <p-dropdown [options]="categoriesOptions" placeholder="Chọn danh mục"
+                      [(ngModel)]="selectedCategory"
+                      (onChange)="onCategoryChange($event)" [style]="{'width': '100%'}" styleClass="w-100"></p-dropdown>
+                  </div>
+                  <div class="mb-4">
+                    <h5 class="filter-title">Chức năng</h5>
+                    <p-dropdown [options]="featureOptions" placeholder="Chọn chức năng"
+                      [(ngModel)]="selectedFeature"
+                      (onChange)="onFeatureChange($event)" [style]="{'width': '100%'}" styleClass="w-100"></p-dropdown>
+                  </div>
+                  <div class="mb-4">
+                    <h5 class="filter-title">Sắp xếp</h5>
+                    <p-dropdown [options]="sortOptions" placeholder="Sắp xếp theo giá"
+                      [(ngModel)]="sortField"
+                      (onChange)="onSortChange($event)" [style]="{'width': '100%'}" styleClass="w-100"></p-dropdown>
+                  </div>
+                  <div class="mb-4">
+                    <h5 class="filter-title">Lọc theo giá</h5>
+                    <div class="range mb-3">
+                      <p-slider [min]="1" [(ngModel)]="priceFilterValue" [range]="true" [style]="{'width': '100%'}"></p-slider>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="price-range">{{priceFilterValue[0]*500000 | currency:'VND':'symbol':'1.0-0'}} - {{priceFilterValue[1]*500000 | currency:'VND':'symbol':'1.0-0'}}</span>
+                      <button class="btn btn-danger btn-sm" (click)="filterPrice()">Lọc</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Desktop filters -->
+        <div class="allProduct-header_right col-lg-3 col-md-4 d-none d-md-flex align-items-center">
+          <div class="d-flex justify-content-between align-items-center px-4 mt-3">
+            <p-dropdown [options]="categoriesOptions" placeholder="Danh mục"
+              [(ngModel)]="selectedCategory"
+              (onChange)="onCategoryChange($event)"></p-dropdown> 
+          </div>
+          <div class="d-flex justify-content-between align-items-center px-4 mt-3">
+            <p-dropdown [options]="sortOptions" placeholder="Sắp xếp"
+              [(ngModel)]="sortField"
+              (onChange)="onSortChange($event)"></p-dropdown> 
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- content -->
+  <div class="allProduct-content">
+    <div class="container">
+      <div class="row">
+        <!-- Desktop left sidebar -->
+        <div class="col-md-3 d-none d-md-block">
+          
+          <!-- Categories Filter (New) -->
+          <div class="allProduct-content-filter mb-4">
+            <h4 class="sidebar-title">DANH MỤC</h4>
+            <div class="category-list">
+              <div 
+                class="category-item" 
+                [class.active]="selectedCategory === 'all'"
+                (click)="onCategorySelect('all')">
+                <i class="pi pi-th-large"></i>
+                <span>Tất cả sản phẩm</span>
+              </div>
+              <ng-container *ngFor="let cat of categoriesOptions">
+                <div *ngIf="cat.value !== 'all'"
+                  class="category-item" 
+                  [class.active]="selectedCategory === cat.value"
+                  (click)="onCategorySelect(cat.value)">
+                  <i class="pi pi-angle-right"></i>
+                  <span>{{cat.label}}</span>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+
+          <!-- price filter -->
+          <div class="allProduct-content-filter">
+            <h4 class="sidebar-title">LỌC THEO GIÁ</h4>
+            <div class="range mb-3">
+              <p-slider [min]="1" [(ngModel)]="priceFilterValue" [range]="true" id="range1"></p-slider>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <button (click)="filterPrice()" class="btn btn-danger btn-sm">Lọc</button>
+              <h6 class="price-range mb-0">
+                {{priceFilterValue[0]*500000 | currency:'VND':'symbol':'1.0-0'}} -
+                {{priceFilterValue[1]*500000 | currency:'VND':'symbol':'1.0-0'}}
+              </h6>
+            </div>
+          </div>
+
+          <!-- features filter -->
+          <div class="allProduct-content-filter mt-4">
+            <h4 class="sidebar-title">CHỨC NĂNG</h4>
+            <div class="features-list">
+              <ng-container *ngFor="let feature of features">
+                <div class="form-check mb-2">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    [id]="'feature-' + feature.id"
+                    [checked]="isFeatureSelected(feature.id?.toString() || '')"
+                    (change)="onFeatureCheckboxChange(feature.id?.toString() || '', $any($event.target).checked)">
+                  <label class="form-check-label" [for]="'feature-' + feature.id">
+                    {{ feature.name }}
+                  </label>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+
+          <!-- product suggestion -->
+          <div class="featured-products mt-4">
+            <h4 class="sidebar-title mb-3">SẢN PHẨM NỔI BẬT</h4>
+            <div class="product-list">
+              @for(item of productsHighlight;track item){
+                <div (click)="navigateToDetail(item.id)" class="product-item">
+                  <div class="row g-0 align-items-center">
+                    <div class="col-4">
+                      <img [src]="getProductImageUrl(item)" alt="{{item.name}}" class="img-fluid">
+                    </div>
+                    <div class="col-8 ps-3">
+                      <h6 class="product-name">{{item.name}}</h6>
+                      <p class="product-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</p>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Product grid -->
+        <div class="col-12 col-md-9">
+          @if(isLoading) {
+            <div class="d-flex justify-content-center py-5">
+              <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          } @else if(error) {
+            <div class="alert alert-danger" role="alert">
+              {{error}}
+            </div>
+          } @else if(products.length === 0) {
+            <div class="alert alert-info" role="alert">
+              Không tìm thấy sản phẩm nào
+            </div>
+          } @else {
+            <div class="product-grid">
+              <div class="row g-3">
+                @for (item of displayedProducts; track item) {
+                  <div class="col-6 col-sm-4 col-lg-3">
+                    <div class="product-card" [class.out-of-stock]="item.quantity === 0">
+                      <div class="product-image" (click)="navigateToDetail(item.id)">
+                        @if(item.discount > 0){
+                          <p-badge [value]="-item.discount + '%'" severity="danger"></p-badge>
+                        }
+                        @if(item.quantity === 0){
+                          <p-badge value="Hết hàng" severity="warning"></p-badge>
+                        }
+                        <img [src]="getProductImageUrl(item)" 
+                             [alt]="item.name" 
+                             class="img-fluid"
+                             (error)="$any($event.target).src = 'assets/images/no-image.png'">
+                      </div>
+                      <div class="product-info">
+                        <h3 class="product-name" (click)="navigateToDetail(item.id)">{{item.name}}</h3>
+                        <div class="product-price">
+                          <span class="current-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</span>
+                          @if (item.discount > 0){
+                            <span class="original-price">{{item.price / (1-item.discount/100) | currency:'VND':'symbol':'1.0-0'}}</span>
+                          }
+                        </div>
+                        @if(item.sold_quantity !== undefined && item.sold_quantity > 0) {
+                          <div class="product-sold">
+                            <span>Đã bán: {{item.sold_quantity}}</span>
+                          </div>
+                        }
+                        <div class="product-rating" *ngIf="item.averageRating && item.averageRating > 0">
+                          <ng-container *ngFor="let i of [].constructor(5); let index = index">
+                            <i class="pi pi-star-fill" *ngIf="index + 1 <= item.averageRating"></i>
+                            <span *ngIf="index < item.averageRating && index + 1 > item.averageRating" style="position: relative; display: inline-block; width: 14px; height: 14px;">
+                                <i class="pi pi-star" style="position: absolute; left: 0; top: 0;"></i>
+                                <i class="pi pi-star-fill" style="position: absolute; left: 0; top: 0; clip-path: inset(0 50% 0 0);"></i>
+                            </span>
+                            <i class="pi pi-star" *ngIf="index >= item.averageRating"></i>
+                          </ng-container>
+                          <span class="review-count">({{item.totalReviews || 0}})</span>
+                        </div>
+                        @if (roleId !== 1 && roleId !== 100) {
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+              <div class="pagination-container mt-4">
+                <p-paginator 
+                  [first]="first"
+                  [rows]="rows"
+                  [totalRecords]="totalRecords"
+                  [rowsPerPageOptions]="[12, 24, 36]"
+                  (onPageChange)="onPageChange($event)">
+                </p-paginator>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

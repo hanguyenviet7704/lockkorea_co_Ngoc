@@ -1,0 +1,262 @@
+<!-- banner -->
+<div class="home">
+    <!-- Hero Top Row: News | Banner | Categories/Features -->
+    <section class="hero-banner py-3">
+      <div class="container">
+        <div class="row g-3 align-items-stretch">
+          <!-- Left: Categories & Features -->
+          <div class="col-lg-3 d-none d-lg-block">
+            <div class="p-3 bg-light rounded h-100 d-flex flex-column gap-3">
+              <div>
+                <h6 class="mb-2">Thương hiệu</h6>
+                <div class="categories-tags-wrapper small">
+                  <ng-container *ngFor="let category of categories">
+                    <div class="category-tag" (click)="navigateToCategory(category.id)">
+                      <i class="pi pi-tag"></i>
+                      <span>{{category.name}}</span>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+              <div>
+                <h6 class="mb-2">Chức năng nổi bật</h6>
+                <div class="features-tags-wrapper small">
+                  <ng-container *ngFor="let feature of features">
+                    <div class="feature-tag" (click)="navigateToFeature(feature.id)">
+                      <i [class]="feature.icon"></i>
+                      <span>{{feature.name}}</span>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle: Smaller banner carousel -->
+          <div class="col-lg-6">
+            <!-- Loading state -->
+            <div *ngIf="isLoadingBanners" class="text-center py-5">
+              <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+
+            <!-- Main Banner Carousel -->
+            <div *ngIf="!isLoadingBanners && mainBanners.length > 0" id="carouselBanners" class="carousel slide banner-compact mb-3" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                <button *ngFor="let banner of mainBanners; let i = index" type="button" [attr.data-bs-target]="'#carouselBanners'" [attr.data-bs-slide-to]="i" [class.active]="i === 0" [attr.aria-current]="i === 0 ? 'true' : null" [attr.aria-label]="'Slide ' + (i + 1)"></button>
+              </div>
+              <div class="carousel-inner rounded overflow-hidden">
+                <div *ngFor="let banner of mainBanners; let i = index" class="carousel-item" [class.active]="i === 0">
+                  <img [src]="getBannerImageUrl(banner)" class="d-block w-100" [alt]="banner.title">
+                  <div class="carousel-caption d-none d-md-block text-start">
+                    <h2 class="fw-bold mb-1">{{ banner.title }}</h2>
+                    <p *ngIf="banner.description" class="mb-2">{{ banner.description }}</p>
+                    <button *ngIf="banner.button_text && banner.button_link" class="btn btn-primary btn-sm" [routerLink]="banner.button_link">{{ banner.button_text }}</button>
+                  </div>
+                </div>
+              </div>
+              <button *ngIf="mainBanners.length > 1" class="carousel-control-prev" type="button" data-bs-target="#carouselBanners" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button *ngIf="mainBanners.length > 1" class="carousel-control-next" type="button" data-bs-target="#carouselBanners" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+
+            <!-- Small Banners (2 columns) -->
+            <div *ngIf="!isLoadingBanners && smallBanners.length > 0" class="row g-2">
+              <div *ngFor="let banner of smallBanners" class="col-6">
+                <div class="small-banner-card" (click)="navigateToBanner(banner.button_link)" [class.cursor-pointer]="banner.button_link">
+                  <img [src]="getBannerImageUrl(banner)" class="d-block w-100" [alt]="banner.title">
+                  <div class="small-banner-overlay">
+                    <div class="small-banner-content">
+                      <h6 class="small-banner-title">{{ banner.title }}</h6>
+                      <p *ngIf="banner.description" class="small-banner-description">{{ banner.description }}</p>
+                      <button *ngIf="banner.button_text && banner.button_link" class="btn btn-sm btn-primary">{{ banner.button_text }}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fallback when no banners -->
+            <div *ngIf="!isLoadingBanners && mainBanners.length === 0 && smallBanners.length === 0" class="carousel-fallback text-center py-5 bg-light rounded">
+              <h5>Chưa có banner nào được hiển thị</h5>
+              <p class="text-muted mb-0">Vui lòng liên hệ quản trị viên để thêm banner</p>
+            </div>
+          </div>
+
+          <!-- Right: News aside -->
+          <div class="col-lg-3 d-none d-lg-block">
+            <aside class="news-aside h-100 p-3 bg-light rounded">
+              <h5 class="mb-3">Tin tức mới</h5>
+              <div *ngIf="isLoadingNews" class="text-center py-3">
+                <div class="spinner-border text-danger" role="status">
+                  <span class="visually-hidden">Đang tải tin tức...</span>
+                </div>
+              </div>
+              <div *ngIf="!isLoadingNews && latestNews.length > 0" class="news-list">
+                <div *ngFor="let news of latestNews | slice:0:5" class="news-mini-card" (click)="navigateToNews(news.id)">
+                  <div class="d-flex">
+                    <img [src]="getNewsImageUrl(news)" [alt]="news.title">
+                    <div class="flex-grow-1">
+                      <div class="small">{{ news.published_at | date:'dd/MM' }}</div>
+                      <div class="fw-semibold line-clamp-2">{{ news.title }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-center">
+                  <button class="btn btn-outline-danger btn-sm" routerLink="/news">Xem tất cả</button>
+                </div>
+              </div>
+              <div *ngIf="!isLoadingNews && latestNews.length === 0" class="text-muted">Chưa có tin tức.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="voucher-section">
+      <div class="container">
+        <app-voucher-display></app-voucher-display>
+      </div>
+    </section>
+
+    <!-- Main content with right news sidebar -->
+    <section class="home-main py-4">
+      <div class="container">
+        <div class="row g-4">
+          <!-- Left: main content -->
+          <div class="col-lg-9">
+
+            <!-- Recommended -->
+            <div class="recommended-products py-4">
+              <div class="row text-center mb-4">
+                <div class="col-12">
+                  <h2 class="section-title">Sản phẩm bạn sẽ quan tâm</h2>
+                </div>
+              </div>
+              <div class="row g-4">
+                <ng-container *ngFor="let product of recommendedProducts">
+                  <div class="col-lg-3 col-md-6">
+                    <div class="product-card-recommended" (click)="navigateToDetail(product.id)">
+                      <div class="product-image">
+                        <img [src]="getProductImageUrl(product)" [alt]="product.name" class="img-fluid">
+                        <span *ngIf="product.discount > 0" class="discount-badge">-{{product.discount}}%</span>
+                      </div>
+                      <div class="product-info">
+                        <h5 class="product-title">{{product.name}}</h5>
+                        <div class="product-rating">
+                          <ng-container *ngFor="let i of [].constructor(5); let index = index">
+                            <i class="pi" [ngClass]="{'pi-star-fill': index < (product.averageRating || 0), 'pi-star': index >= (product.averageRating || 0)}"></i>
+                          </ng-container>
+                          <span class="review-count">({{product.totalReviews || 0}})</span>
+                        </div>
+                        <div class="product-price">
+                          <span class="current-price">{{product.price | currency:'VND':'symbol':'1.0-0'}}</span>
+                          <span *ngIf="product.discount > 0" class="original-price">{{product.price / (1-product.discount/100) | currency:'VND':'symbol':'1.0-0'}}</span>
+                        </div>
+                        <div class="product-sold" *ngIf="product.sold_quantity !== undefined && product.sold_quantity > 0">
+                          <span>Đã bán: {{product.sold_quantity}}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+
+            <!-- Featured -->
+            <div class="featured-products py-4 bg-light">
+              <div class="row text-center mb-4">
+                <div class="col-12">
+                  <h2 class="section-title">Sản phẩm nổi bật</h2>
+                </div>
+              </div>
+              <div class="row g-4">
+                @for(product of productsHighlight; track product){
+                  <div class="col-lg-4 col-md-6">
+                    <div class="product-card-featured" (click)="navigateToDetail(product.id)">
+                      <div class="product-image-wrapper">
+                         <img [src]="getProductImageUrl(product)" 
+                              [alt]="product.name" 
+                              class="img-fluid"
+                              (error)="$any($event.target).src = 'assets/images/no-image.png'">
+                        @if(product.discount > 0) {
+                          <span class="discount-badge">-{{product.discount}}%</span>
+                        }
+                      </div>
+                      <div class="product-info">
+                        <h5 class="product-title">{{product.name}}</h5>
+                        <div class="product-rating">
+                          <ng-container *ngFor="let i of [].constructor(5); let index = index">
+                            <i class="pi" [ngClass]="{'pi-star-fill': index < (product.averageRating || 0), 'pi-star': index >= (product.averageRating || 0)}"></i>
+                          </ng-container>
+                          <span class="review-count">({{product.totalReviews || 0}})</span>
+                        </div>
+                        <div class="product-price">
+                          <span class="current-price">{{product.price | currency:'VND':'symbol':'1.0-0'}}</span>
+                          @if(product.discount > 0) {
+                            <span class="original-price">{{product.price / (1-product.discount/100) | currency:'VND':'symbol':'1.0-0'}}</span>
+                          }
+                        </div>
+                        @if(product.sold_quantity !== undefined && product.sold_quantity > 0) {
+                          <div class="product-sold">
+                            <span>Đã bán: {{product.sold_quantity}}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+              <div class="text-center mt-4">
+                <button class="btn btn-outline-primary btn-lg" routerLink="/allProduct">Xem tất cả sản phẩm</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right: New Arrivals sidebar -->
+          <div class="col-lg-3">
+            <aside class="new-arrivals-aside">
+              <h3 class="mb-3">Hàng mới về</h3>
+              <div *ngIf="productNewest.length > 0" class="new-arrivals-list">
+                <div *ngFor="let product of productNewest | slice:0:6" class="new-arrival-card mb-3" (click)="navigateToDetail(product.id)" style="cursor:pointer;">
+                  <div class="d-flex gap-2">
+                    <img [src]="getProductImageUrl(product)" 
+                         [alt]="product.name" 
+                         style="width:84px;height:56px;object-fit:cover;border-radius:6px;"
+                         (error)="$any($event.target).src = 'assets/images/no-image.png'">
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold line-clamp-2 mb-1">{{ product.name }}</div>
+                      <div class="product-price-small">
+                        <span class="current-price-small">{{ product.price | currency:'VND':'symbol':'1.0-0' }}</span>
+                        <span *ngIf="product.discount > 0" class="discount-badge-small">-{{product.discount}}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-center">
+                  <button class="btn btn-outline-danger btn-sm" routerLink="/allProduct">Xem tất cả</button>
+                </div>
+              </div>
+              <div *ngIf="productNewest.length === 0" class="text-muted">Chưa có sản phẩm mới.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    
+
+    
+
+    
+
+    <!-- AI Chatbot -->
+    <!-- <app-ai-chatbot></app-ai-chatbot> -->
+</div>

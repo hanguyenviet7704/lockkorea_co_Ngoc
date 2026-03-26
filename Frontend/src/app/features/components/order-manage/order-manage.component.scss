@@ -1,0 +1,756 @@
+// Material 3 Expressive Design Tokens
+$md-sys-color-surface: #FEFBFF;
+$md-sys-color-surface-container: #F3F4F6;
+$md-sys-color-surface-container-high: #E5E7EB;
+$md-sys-color-primary: #1976D2;
+$md-sys-color-on-primary: #FFFFFF;
+$md-sys-color-primary-container: #BBDEFB;
+$md-sys-color-on-primary-container: #0D47A1;
+$md-sys-color-secondary: #03DAC6;
+$md-sys-color-on-secondary: #000000;
+$md-sys-color-error: #BA1A1A;
+$md-sys-color-on-error: #FFFFFF;
+$md-sys-color-on-surface: #1C1B1F;
+$md-sys-color-on-surface-variant: #49454F;
+$md-sys-color-outline: #79747E;
+$md-sys-color-outline-variant: #CAC4D0;
+
+:host {
+  display: block;
+  background-color: $md-sys-color-surface-container;
+  height: 100%;
+  font-family: 'Roboto', sans-serif;
+}
+
+.order-manage-container {
+  padding: 1.5rem 2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding-bottom: 0.5rem;
+  flex-wrap: wrap;
+
+  h2 {
+    font-size: 2rem;
+    color: $md-sys-color-on-surface;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .p-button {
+      border-radius: 100px;
+      padding: 0.625rem 1.5rem;
+      font-weight: 500;
+      
+      &.p-button-success {
+        background-color: #4CAF50;
+        border-color: #4CAF50;
+        
+        &:hover {
+          background-color: #43A047;
+          border-color: #43A047;
+        }
+      }
+    }
+
+    .header-search-container {
+      position: relative;
+      cursor: pointer;
+      
+      .p-input-icon-left {
+        width: 100%;
+        
+        i {
+          z-index: 1;
+          color: $md-sys-color-on-surface-variant;
+        }
+        
+        input {
+          border-radius: 100px;
+          padding-left: 2.5rem;
+          background-color: $md-sys-color-surface;
+          border: 1px solid transparent;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          transition: all 0.2s;
+          width: 280px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: darken($md-sys-color-surface, 2%);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          }
+
+          &:focus {
+            box-shadow: 0 0 0 2px $md-sys-color-primary-container;
+            border-color: $md-sys-color-primary;
+          }
+        }
+      }
+    }
+  }
+}
+
+.order-table-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 24px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  background: $md-sys-color-surface;
+  overflow: hidden;
+  
+  ::ng-deep .p-card-body {
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  ::ng-deep .p-card-content {
+    height: 100%;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.order-table {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .p-datatable {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .p-datatable-wrapper {
+    flex-grow: 1;
+    overflow-y: auto;
+    
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.1);
+      border-radius: 4px;
+      
+      &:hover {
+        background-color: rgba(0,0,0,0.2);
+      }
+    }
+  }
+
+  .p-datatable-header {
+    background: transparent;
+    border: none;
+    padding: 1rem 1.5rem;
+  }
+
+  .p-datatable-thead > tr > th {
+    background-color: $md-sys-color-surface;
+    font-weight: 600;
+    color: $md-sys-color-on-surface-variant;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid $md-sys-color-surface-container-high;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: $md-sys-color-surface-container;
+      color: $md-sys-color-on-surface;
+    }
+
+    &.p-highlight {
+      color: $md-sys-color-primary;
+      background-color: $md-sys-color-surface;
+      
+      .p-sortable-column-icon {
+        color: $md-sys-color-primary;
+      }
+    }
+  }
+
+  .p-datatable-tbody > tr {
+    transition: background-color 0.2s;
+
+    &.p-datatable-row-expansion {
+        background-color: $md-sys-color-surface-container;
+    }
+
+    > td {
+      padding: 1rem;
+      vertical-align: middle;
+      border-bottom: 1px solid $md-sys-color-surface-container-high;
+      color: $md-sys-color-on-surface;
+      font-size: 0.95rem;
+
+      .action-btn {
+        border-radius: 100px !important;
+        padding: 0.5rem 1.25rem !important;
+        font-weight: 500 !important;
+        border: 1px solid $md-sys-color-outline !important;
+        color: $md-sys-color-primary !important;
+        
+        &:hover {
+          background-color: $md-sys-color-primary-container !important;
+          color: $md-sys-color-on-primary-container !important;
+          border-color: $md-sys-color-primary !important;
+        }
+      }
+
+      .p-dropdown {
+        width: 100%;
+        min-width: 160px;
+        border-radius: 8px;
+        
+        .p-dropdown-label {
+          padding: 0.5rem 0.75rem;
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    &:hover {
+      background-color: $md-sys-color-surface-container !important;
+    }
+  }
+
+  .p-paginator {
+    background: transparent;
+    border: none;
+    padding: 1rem;
+    border-top: 1px solid $md-sys-color-surface-container-high;
+
+    .p-paginator-element {
+      border-radius: 50%;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      margin: 0 0.25rem;
+      font-weight: 500;
+      border: none;
+      color: $md-sys-color-on-surface-variant;
+      
+      &:hover {
+        background-color: $md-sys-color-surface-container-high;
+        color: $md-sys-color-on-surface;
+      }
+
+      &.p-highlight {
+        background-color: $md-sys-color-primary-container;
+        color: $md-sys-color-on-primary-container;
+      }
+    }
+  }
+}
+
+// Badges
+.status-badge, .payment-badge, .shipping-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  
+  i {
+    font-size: 1rem;
+  }
+}
+
+.status-badge {
+  &.status-pending {
+    background-color: #FFF8E1;
+    color: #F57C00;
+    border: 1px solid #FFE0B2;
+  }
+  
+  &.status-processing {
+    background-color: #E3F2FD;
+    color: #1976D2;
+    border: 1px solid #BBDEFB;
+  }
+  
+  &.status-shipped {
+    background-color: #E8F5E9;
+    color: #388E3C;
+    border: 1px solid #C8E6C9;
+  }
+  
+  &.status-delivered {
+    background-color: #F1F8E9;
+    color: #33691E;
+    border: 1px solid #DCEDC8;
+  }
+  
+  &.status-cancelled {
+    background-color: #FFEBEE;
+    color: #D32F2F;
+    border: 1px solid #FFCDD2;
+  }
+}
+
+.payment-badge {
+  &.payment-stripe {
+    background-color: #E8EAF6;
+    color: #3F51B5;
+    border: 1px solid #C5CAE9;
+  }
+  
+  &.payment-vnpay {
+    background-color: #E0F7FA;
+    color: #006064;
+    border: 1px solid #B2EBF2;
+  }
+  
+  &.payment-cod {
+    background-color: #F3E5F5;
+    color: #7B1FA2;
+    border: 1px solid #E1BEE7;
+  }
+  
+  &.payment-pending {
+    background-color: #FFF3E0;
+    color: #E65100;
+    border: 1px solid #FFE0B2;
+  }
+}
+
+.shipping-badge {
+  &.shipping-express {
+    background-color: #FFEBEE;
+    color: #C62828;
+    border: 1px solid #FFCDD2;
+  }
+  
+  &.shipping-fast {
+    background-color: #E3F2FD;
+    color: #1565C0;
+    border: 1px solid #BBDEFB;
+  }
+  
+  &.shipping-standard {
+    background-color: #F5F5F5;
+    color: #616161;
+    border: 1px solid #E0E0E0;
+  }
+}
+
+// Mobile Optimization
+@media screen and (max-width: 960px) {
+  .order-manage-container {
+    padding: 1rem;
+  }
+
+  ::ng-deep .p-datatable {
+    .p-datatable-thead {
+      display: none !important;
+    }
+
+    .p-datatable-tbody > tr {
+      display: flex;
+      flex-direction: column;
+      background: $md-sys-color-surface;
+      margin-bottom: 1rem;
+      border-radius: 16px;
+      border: 1px solid $md-sys-color-surface-container-high;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+      > td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border: none;
+        border-bottom: 1px solid $md-sys-color-surface-container;
+        text-align: right;
+        width: 100%;
+
+        &:last-child {
+          border-bottom: none;
+          justify-content: center;
+          padding-top: 1.5rem;
+        }
+
+        &:before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: $md-sys-color-on-surface-variant;
+          text-align: left;
+          margin-right: 1rem;
+        }
+
+        .address-cell {
+          max-width: 200px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+}
+
+::ng-deep .p-dialog {
+  .p-dialog-header {
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+    padding: 1.5rem 2rem;
+    background-color: $md-sys-color-surface;
+    
+    .p-dialog-title {
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+  }
+  
+  .p-dialog-content {
+    padding: 0 2rem 2rem 2rem;
+    background-color: $md-sys-color-surface;
+    
+    &:last-of-type {
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+    }
+  }
+  
+  .p-dialog-footer {
+    padding: 1rem 2rem 1.5rem 2rem;
+    background-color: $md-sys-color-surface;
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+    border-top: none;
+    
+    button {
+      border-radius: 100px;
+    }
+  }
+}
+
+.field {
+  margin-bottom: 1.5rem;
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: $md-sys-color-on-surface-variant;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  
+  input, .p-dropdown, .p-calendar {
+    width: 100%;
+  }
+  
+  .p-inputtext, .p-dropdown, .p-calendar .p-inputtext {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    border-color: $md-sys-color-outline;
+    
+    &:hover {
+      border-color: $md-sys-color-on-surface;
+    }
+    
+    &:focus {
+      border-color: $md-sys-color-primary;
+      box-shadow: 0 0 0 2px $md-sys-color-primary-container;
+    }
+  }
+}
+
+// Shipping & Payment Options Styling
+.shipping-options, .payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.shipping-option, .payment-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid $md-sys-color-outline-variant;
+  border-radius: 12px;
+  transition: all 0.2s;
+  cursor: pointer;
+  background-color: $md-sys-color-surface;
+
+  &:hover {
+    background-color: $md-sys-color-surface-container;
+    border-color: $md-sys-color-outline;
+  }
+
+  // Style when radio button is checked (needs :has or JS, but we can style the label)
+  &:has(p-radioButton.ng-dirty) {
+     border-color: $md-sys-color-primary;
+     background-color: $md-sys-color-surface-container;
+  }
+
+  label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    margin: 0 !important; // Override .field label margin
+    flex: 1;
+    
+    .method-name {
+      font-weight: 500;
+      color: $md-sys-color-on-surface;
+      font-size: 0.95rem;
+    }
+    
+    .method-price {
+      font-size: 0.85rem;
+      color: $md-sys-color-primary;
+      margin-top: 0.25rem;
+    }
+  }
+  
+  .payment-label {
+      font-weight: 500;
+      color: $md-sys-color-on-surface;
+      font-size: 0.95rem;
+      margin: 0 !important;
+  }
+}
+
+
+// Product Search Suggestion Styling
+.product-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  width: 100%;
+  
+  .product-thumb {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid $md-sys-color-outline-variant;
+  }
+  
+  .product-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    
+    .product-name {
+      font-weight: 500;
+      color: $md-sys-color-on-surface;
+      white-space: normal;
+    }
+    
+    .product-price {
+      color: $md-sys-color-primary;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .product-stock {
+      font-size: 0.8rem;
+      color: $md-sys-color-on-surface-variant;
+    }
+  }
+  
+  .product-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+}
+
+// Selected Products List Styling
+.selected-products-list {
+  margin-top: 1.5rem;
+  border: 1px solid $md-sys-color-outline-variant;
+  border-radius: 12px;
+  overflow: hidden;
+  
+  .selected-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: $md-sys-color-surface-container;
+    border-bottom: 1px solid $md-sys-color-outline-variant;
+    
+    h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+  }
+  
+  .products-table {
+    .product-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid $md-sys-color-surface-container-high;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .product-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+      
+      .product-details {
+        flex: 1;
+        
+        .product-name {
+          font-weight: 500;
+          margin-bottom: 0.25rem;
+        }
+        
+        .product-price, .product-stock {
+          font-size: 0.85rem;
+          color: $md-sys-color-on-surface-variant;
+        }
+      }
+      
+      .product-quantity {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        
+        label {
+          font-size: 0.8rem;
+          color: $md-sys-color-on-surface-variant;
+        }
+        
+        .quantity-controls {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+      }
+      
+      .product-total {
+        min-width: 100px;
+        text-align: right;
+        font-weight: 600;
+        color: $md-sys-color-primary;
+      }
+    }
+  }
+}
+
+.empty-products-message {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: $md-sys-color-on-surface-variant;
+  border: 1px dashed $md-sys-color-outline-variant;
+  border-radius: 12px;
+  margin-top: 1rem;
+  
+  p {
+    margin-top: 1rem;
+  }
+}
+
+// Material 3 Action Button
+::ng-deep .action-btn {
+  &.p-button {
+    background: $md-sys-color-surface !important;
+    border: 1px solid $md-sys-color-primary !important;
+    color: $md-sys-color-primary !important;
+    border-radius: 20px !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.1px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    min-width: auto !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+
+    &:hover {
+      background: $md-sys-color-primary-container !important;
+      border-color: $md-sys-color-primary !important;
+      color: $md-sys-color-on-primary-container !important;
+      box-shadow: 0 2px 4px rgba(25, 118, 210, 0.15) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    &:active {
+      transform: translateY(0) !important;
+      box-shadow: 0 1px 2px rgba(25, 118, 210, 0.2) !important;
+    }
+
+    &:focus {
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2) !important;
+    }
+
+    .p-button-label {
+      font-weight: 500 !important;
+    }
+  }
+
+  &.p-button-outlined {
+    background: transparent !important;
+    border: 1px solid $md-sys-color-primary !important;
+    color: $md-sys-color-primary !important;
+
+    &:hover {
+      background: $md-sys-color-primary-container !important;
+      border-color: $md-sys-color-primary !important;
+      color: $md-sys-color-on-primary-container !important;
+    }
+  }
+
+  &.p-button-sm {
+    padding: 0.4375rem 1rem !important;
+    font-size: 0.8125rem !important;
+    border-radius: 18px !important;
+  }
+}
+

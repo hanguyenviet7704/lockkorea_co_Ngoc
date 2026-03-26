@@ -1,0 +1,99 @@
+.layout-main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  background: #f8f9fa; /* match page background to avoid dark gap */
+}
+
+.layout-topbar {
+  margin: 0;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.layout-navbar {
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 65px; // Exact header height
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
+
+.layout-main-content {
+  flex: 1;
+  margin-top: 80px; /* header height */
+  background: #f8f9fa;
+  min-height: calc(100vh - 80px);
+  transition: margin-left 0.3s cubic-bezier(0.2, 0.0, 0, 1.0);
+  margin-left: 0;
+
+  &.sidebar-open {
+    margin-left: 280px;
+  }
+
+  &.sidebar-closed {
+    margin-left: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .layout-main-content {
+    margin-top: 72px;
+    min-height: calc(100vh - 72px);
+    
+    &.sidebar-open {
+       margin-left: 280px; // Or whatever responsive width sidebar takes
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-main-content {
+    margin-top: 64px;
+    min-height: calc(100vh - 64px);
+    
+    /* On mobile, sidebar usually covers content, so no margin needed or it behaves differently */
+    &.sidebar-open {
+      margin-left: 0;
+    }
+  }
+}
+
+
+/* Remove any default margins and ensure seamless connection */
+:host {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* Global body styling for dark theme */
+:ng-deep {
+  body {
+    margin: 0;
+    padding: 0;
+    background: #f8f9fa; /* keep consistent */
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+}
+
+.layout-header-section {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: top 0.3s ease-in-out;
+
+  &.header-hidden {
+    top: -200px; /* Adjust this value to be greater than the header's total height */
+  }
+}

@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql_db:3306/lockerkorea?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - CHROMA_BASE_URL=http://chroma_db:8000
+      - AI_EMBEDDING_BASE_URL=http://embedding_service:9001
+    depends_on:
+      - mysql_db
+      - chroma_db
+      - embedding_service
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  embedding_service:
+    build:
+      context: ./python-embedding-service
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    environment:
+      - EMBEDDING_MODEL_NAME=openai/clip-vit-base-patch32
+      - EMBEDDING_DEVICE=cpu
+
+  mysql_db:
+    image: mysql:8.0
+    ports:
+      - "3308:3306" # Mapped to 3308 on host based on application.yaml
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=lockerkorea
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  chroma_db:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+volumes:
+  mysql_data:
+  chroma_data:

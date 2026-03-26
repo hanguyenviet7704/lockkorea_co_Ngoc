@@ -1,0 +1,566 @@
+import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { InputTextModule } from 'primeng/inputtext';
+import { BaseComponent } from '../../../core/commonComponent/base.component';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from "@angular/forms";
+import { CommonService } from '../../../core/services/common.service';
+import { ProductsInCartDto } from '../../../core/dtos/productsInCart.dto';
+import { catchError, forkJoin, of, switchMap, takeUntil, tap, map } from 'rxjs';
+import { CurrencyPipe, AsyncPipe, NgClass } from '@angular/common';
+import { DropdownModule } from 'primeng/dropdown';
+import { ToastService } from '../../../core/services/toast.service';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { OrderService } from '../../../core/services/order.service';
+import { ProductToCartDto } from '../../../core/dtos/productToCart.dto';
+import { Router } from '@angular/router';
+import { ProductService } from '../../../core/services/product.service';
+import { BlockUIModule } from 'primeng/blockui';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { VoucherService } from '../../../core/services/voucher.service';
+import { VoucherApplicationResponseDto } from '../../../core/dtos/voucherApplication.dto';
+import { ButtonModule } from 'primeng/button';
+import { StripePaymentComponent } from '../stripe-payment/stripe-payment.component';
+import { DialogModule } from 'primeng/dialog';
+import { CardModule } from 'primeng/card';
+import { DividerModule } from 'primeng/divider';
+import { TooltipModule } from 'primeng/tooltip';
+import { environment } from '../../../../environments/environment.development';
+import { VnpayService } from '../../../core/services/vnpay.service';
+import { VnpayPaymentResponse } from '../../../core/responses/vnpay-payment.response';
+import { CreateVnpayPaymentDto } from '../../../core/dtos/create-vnpay-payment.dto';
+import { Observable } from 'rxjs';
+import { VietnamAddressService, AddressDropdownOption } from '../../../core/services/vietnam-address.service';
+
+@Component({
+  selector: 'app-order',
+  standalone: true,
+  imports: [
+    InputTextModule,
+    InputTextareaModule,
+    RadioButtonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CurrencyPipe,
+    DropdownModule,
+    ToastModule,
+    BlockUIModule,
+    ProgressSpinnerModule,
+    AsyncPipe,
+    ButtonModule,
+    StripePaymentComponent,
+    DialogModule,
+    CardModule,
+    DividerModule,
+    TooltipModule,
+    NgClass
+  ],
+  providers: [
+    ToastService,
+    MessageService
+  ],
+  templateUrl: './order.component.html',
+  styleUrl: './order.component.scss'
+})
+export class OrderComponent extends BaseComponent implements OnInit,AfterViewInit {
+  public inforShipForm: FormGroup;
+  public productToOrder!: ProductsInCartDto[];
+  public productOrder: ProductToCartDto[] = [];
+  public totalCost: number = 0;
+  public finalCost: number = 0; // Total after discount
+  public discountAmount: number = 0;
+  public voucherCode: string = '';
+  public isVoucherApplied: boolean = false;
+  public appliedVoucherName: string = '';
+  public apiImage: string = environment.apiImage;
+  
+  private productOrderLocalStorage: ProductsInCartDto[] = [];
+  public blockedUi: boolean = false;
+  public orderId: number = 0;
+
+  public methodShipping!: {
+    name: string,
+    code: string,
+    price: number
+  }[];
+  public methodShippingValue!: {name: string, code: string,price: number};
+  public selectedPayMethod!: {name: string, key: string, logo: string};
+
+  public paymentMethods = [
+    { name: 'Thanh toán khi nhận hàng', key: 'Cash', logo: 'assets/images/payment-icons/cash.svg' },
+    { name: 'Thanh toán bằng thẻ Visa/Mastercard', key: 'Stripe', logo: 'assets/images/payment-icons/stripe.svg' },
+    { name: 'Thanh toán qua VNPAY', key: 'VNPAY', logo: 'assets/images/payment-icons/vnpay.svg' }
+  ];
+
+  // Stripe payment properties
+  public showStripeDialog: boolean = false;
+  public isStripePayment: boolean = false;
+
+  // Vietnam Address properties
+  public provinces: AddressDropdownOption[] = [];
+  public districts: AddressDropdownOption[] = [];
+  public wards: AddressDropdownOption[] = [];
+  public selectedProvince: number | null = null;
+  public selectedDistrict: number | null = null;
+  public selectedWard: string | null = null;
+
+  constructor(
+    private fb: FormBuilder,
+    private messageService: MessageService,
+    private toastService: ToastService,
+    private orderService: OrderService,
+    private commonService: CommonService,
+    private router: Router,
+    private productService: ProductService,
+    private voucherService: VoucherService,
+    private vnpayService: VnpayService,
+    private vietnamAddressService: VietnamAddressService
+  ) {
+    super();
+    this.inforShipForm = this.fb.group({
+      fullName: ['', Validators.required],
+      province: [null, Validators.required],
+      district: [{value: null, disabled: true}, Validators.required],
+      ward: [{value: null, disabled: true}, Validators.required],
+      street: ['', Validators.required],
+      phoneNumber: ['', [Validators.required, Validators.minLength(5)]],
+      email: ['', [Validators.email]],
+      note: ['']
+    })
+  }
+  ngOnInit(): void {
+    this.productToOrder = JSON.parse(localStorage.getItem("productOrder")!); 
+    this.productToOrder.forEach((item) => {
+      this.productOrder.push({
+        product_id: item.products.id,
+        quantity: item.quantity,
+        size: item.size
+      })
+    })
+
+    this.productToOrder.forEach((item) => {
+      this.totalCost += item.products.price * item.quantity
+    })
+    
+    this.finalCost = this.totalCost; // Initialize final cost
+
+    this.methodShipping = [
+      {name: 'Nhanh', code:'N', price: 0},
+      {name: 'Hỏa tốc', code: 'HT', price: 60000}
+    ];
+    this.methodShippingValue = this.methodShipping[0];
+    this.selectedPayMethod = this.paymentMethods[0];
+    this.checkPaymentMethodValidity();
+
+    // Load provinces on init
+    this.loadProvinces();
+  }
+
+  selectPaymentMethod(method: {name: string, key: string, logo: string}) {
+    this.selectedPayMethod = method;
+  }
+  
+  checkPaymentMethodValidity() {
+    const totalOrderValue = this.finalCost + this.methodShippingValue.price;
+    if (totalOrderValue >= 50000000 && this.selectedPayMethod.key === 'Cash') {
+      const alternative = this.paymentMethods.find(m => m.key !== 'Cash');
+      if (alternative) {
+        this.selectedPayMethod = alternative;
+      }
+    }
+  }
+
+  onShippingChange() {
+    this.checkPaymentMethodValidity();
+  }
+
+  ngAfterViewInit(): void {
+   
+  }
+
+  applyVoucher(): void {
+    if (!this.voucherCode.trim()) {
+      this.toastService.fail("Vui lòng nhập mã voucher");
+      return;
+    }
+
+    this.voucherService.applyVoucher({
+      voucher_code: this.voucherCode,
+      order_total: this.totalCost
+    }).pipe(
+      tap((response: VoucherApplicationResponseDto) => {
+        if (response.is_applied) {
+          this.isVoucherApplied = true;
+          this.discountAmount = response.discount_amount || 0;
+          this.finalCost = response.final_total || this.totalCost;
+          this.appliedVoucherName = response.voucher_name || '';
+          this.checkPaymentMethodValidity();
+          this.toastService.success(response.message || 'Áp dụng voucher thành công');
+        } else {
+          this.resetVoucher();
+          this.toastService.fail(response.message || 'Không thể áp dụng voucher. Vui lòng thử lại.');
+        }
+      }),
+      catchError((err) => {
+        this.resetVoucher();
+        this.toastService.fail(err.error?.message || 'Lỗi không xác định khi áp dụng voucher.');
+        return of(err);
+      }),
+      takeUntil(this.destroyed$)
+    ).subscribe();
+  }
+
+  removeVoucher(): void {
+    this.resetVoucher();
+    this.toastService.success("Đã hủy áp dụng voucher");
+  }
+
+  private resetVoucher(): void {
+    this.isVoucherApplied = false;
+    this.discountAmount = 0;
+    this.finalCost = this.totalCost;
+    this.voucherCode = '';
+    this.appliedVoucherName = '';
+    this.checkPaymentMethodValidity();
+  }
+
+  order(){
+    if (this.inforShipForm.invalid){
+      this.toastService.fail("Vui lòng nhập đầy đủ thông tin giao hàng");
+      this.inforShipForm.markAllAsTouched();
+      return;
+    }
+
+    // Validation: Disable COD for orders >= 50,000,000 VND
+    const totalOrderValue = this.finalCost + this.methodShippingValue.price;
+    if (this.selectedPayMethod.key === 'Cash' && totalOrderValue >= 50000000) {
+      this.toastService.fail("Đơn hàng từ 50 triệu đồng trở lên không được thanh toán khi nhận hàng (COD). Vui lòng chọn phương thức thanh toán khác.");
+      return;
+    }
+
+    if (this.selectedPayMethod.key === 'Stripe') {
+        this.processStripeOrder();
+      } else if (this.selectedPayMethod.key === 'VNPAY') {
+        this.processVnpayOrder();
+      } else {
+        this.processRegularOrder();
+      }
+  }
+
+  private processStripeOrder(): void {
+    this.blockUi();
+    const userInfor = JSON.parse(localStorage.getItem("userInfor") || '{}');
+    const userId = userInfor.id;
+
+    this.buildCompleteAddress().pipe(
+      switchMap((completeAddress) => {
+        const orderData = {
+          ...(userId && { user_id: Number(userId) }),
+          fullname: this.inforShipForm.value.fullName,
+          email: this.inforShipForm.value.email,
+          phone_number: this.inforShipForm.value.phoneNumber,
+          address: completeAddress,
+          note: this.inforShipForm.value.note || '',
+          shipping_method: this.methodShippingValue.name,
+          payment_method: this.selectedPayMethod.key,
+          cart_items: this.productOrder.map(item => ({
+            product_id: Number(item.product_id),
+            quantity: Number(item.quantity),
+            size: Number(item.size)
+          })),
+          sub_total: Math.round(this.totalCost),
+          total_money: Math.round(this.finalCost + this.methodShippingValue.price),
+          ...(this.isVoucherApplied && { voucher_code: this.voucherCode }),
+          district_id: this.inforShipForm.value.district,
+          province_id: this.inforShipForm.value.province,
+          ward_code: this.inforShipForm.value.ward
+        };
+
+        return this.orderService.postOrder(orderData);
+      }),
+      tap((orderInfor: any) => {
+        this.orderId = orderInfor.id;
+        this.commonService.orderId.next(orderInfor.id);
+        this.blockUi();
+        // Show Stripe payment dialog
+        this.showStripeDialog = true;
+        this.isStripePayment = true;
+      }),
+      catchError((err) => {
+        this.blockUi();
+        console.error('Order creation error:', err);
+        this.toastService.fail("Không thể tạo đơn hàng: " + (err.error?.message || err.message));
+        return of(err);
+      }),
+      takeUntil(this.destroyed$)
+    ).subscribe();
+  }
+
+  private processRegularOrder(): void {
+    this.blockUi();
+    const userInfor = JSON.parse(localStorage.getItem("userInfor") || '{}');
+    const userId = userInfor.id;
+
+    this.buildCompleteAddress().pipe(
+      switchMap((completeAddress) => {
+        const orderData = {
+          ...(userId && { user_id: Number(userId) }),
+          fullname: this.inforShipForm.value.fullName,
+          email: this.inforShipForm.value.email,
+          phone_number: this.inforShipForm.value.phoneNumber,
+          address: completeAddress,
+          note: this.inforShipForm.value.note || '',
+          shipping_method: this.methodShippingValue.name,
+          payment_method: this.selectedPayMethod.key,
+          cart_items: this.productOrder.map(item => ({
+            product_id: Number(item.product_id),
+            quantity: Number(item.quantity),
+            size: Number(item.size)
+          })),
+          sub_total: Math.round(this.totalCost),
+          total_money: Math.round(this.finalCost + this.methodShippingValue.price),
+          ...(this.isVoucherApplied && { voucher_code: this.voucherCode }),
+          district_id: this.inforShipForm.value.district,
+          province_id: this.inforShipForm.value.province,
+          ward_code: this.inforShipForm.value.ward
+        };
+
+        return this.orderService.postOrder(orderData);
+      }),
+      switchMap(() => this.productService.deleteAllProductsFromCart())
+    ).subscribe({
+      next: () => {
+        this.blockUi();
+        this.toastService.success("Đặt hàng thành công");
+        this.clearCart();
+        this.router.navigate(['/history']);
+      },
+      error: (err) => {
+        this.blockUi();
+        console.error('Order creation error:', err);
+        this.toastService.fail("Không thể tạo đơn hàng: " + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  private processVnpayOrder(): void {
+    this.blockUi();
+    const userInfor = JSON.parse(localStorage.getItem("userInfor") || '{}');
+    const userId = userInfor.id;
+    let createdOrderId: number;
+
+    this.buildCompleteAddress().pipe(
+      switchMap((completeAddress) => {
+        const orderData = {
+          ...(userId && { user_id: Number(userId) }),
+          fullname: this.inforShipForm.value.fullName,
+          email: this.inforShipForm.value.email,
+          phone_number: this.inforShipForm.value.phoneNumber,
+          address: completeAddress,
+          note: this.inforShipForm.value.note || '',
+          shipping_method: this.methodShippingValue.name,
+          payment_method: this.selectedPayMethod.key,
+          cart_items: this.productOrder.map(item => ({
+            product_id: Number(item.product_id),
+            quantity: Number(item.quantity),
+            size: Number(item.size)
+          })),
+          sub_total: Math.round(this.totalCost),
+          total_money: Math.round(this.finalCost + this.methodShippingValue.price),
+          ...(this.isVoucherApplied && { voucher_code: this.voucherCode }),
+          district_id: this.inforShipForm.value.district,
+          province_id: this.inforShipForm.value.province,
+          ward_code: this.inforShipForm.value.ward
+        };
+
+        return this.orderService.postOrder(orderData);
+      }),
+      tap((orderInfor: any) => {
+        createdOrderId = orderInfor.id;
+      }),
+      switchMap(() => this.clearCart()),
+      switchMap(() => {
+        const vnpayDto: CreateVnpayPaymentDto = {
+          order_id: createdOrderId,
+          amount: Math.round(this.finalCost + this.methodShippingValue.price),
+          order_info: `Thanh toán cho đơn hàng ${createdOrderId}`
+        };
+        return this.vnpayService.createVnpayPayment(vnpayDto);
+      }),
+      tap((vnpayResponse: VnpayPaymentResponse) => {
+        if(vnpayResponse.url) {
+          window.location.href = vnpayResponse.url;
+        }
+      }),
+      catchError((err) => {
+        this.blockUi();
+        console.error('VNPay process error:', err);
+        this.toastService.fail("Không thể tạo thanh toán VNPay: " + (err.error?.message || err.message));
+        return of(err);
+      }),
+      takeUntil(this.destroyed$)
+    ).subscribe();
+  }
+
+  onStripePaymentSuccess(paymentIntent: any): void {
+    if (paymentIntent.status === 'succeeded') {
+      // Backend đã tự động cập nhật trạng thái đơn hàng thành PAID trong confirmPayment()
+      // Chỉ cần xóa giỏ hàng và điều hướng
+      this.productService.deleteAllProductsFromCart().subscribe({
+        next: () => {
+          this.toastService.success("Thanh toán thành công. Đơn hàng của bạn đã được xác nhận.");
+          this.clearCart();
+          this.router.navigate(['/history']);
+        },
+        error: (err) => {
+          console.error('Error clearing cart after Stripe payment:', err);
+          // Vẫn điều hướng dù có lỗi xóa giỏ hàng
+          this.toastService.success("Thanh toán thành công. Đơn hàng của bạn đã được xác nhận.");
+          this.clearCart();
+          this.router.navigate(['/history']);
+        }
+      });
+    } else {
+      this.onStripePaymentError("Thanh toán không thành công. Vui lòng thử lại.");
+    }
+    this.showStripeDialog = false;
+  }
+
+  onStripePaymentError(error: string): void {
+    this.showStripeDialog = false;
+    this.toastService.fail(`Thanh toán thất bại: ${error}`);
+    this.orderService.updateOrderStatus(this.orderId, 'payment_failed').pipe(
+        catchError((err) => {
+            console.error('Failed to update order status to payment_failed', err);
+            return of(err);
+        })
+    ).subscribe();
+  }
+
+  onStripePaymentCancel(): void {
+    this.orderService.updateOrderStatus(this.orderId, 'cancelled').pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe();
+    this.toastService.warn("Thanh toán đã bị hủy. Đơn hàng của bạn chưa được xác nhận.");
+    this.showStripeDialog = false;
+  }
+
+  private clearCart(): Observable<any> {
+    localStorage.removeItem('productOrder');
+    this.commonService.intermediateObservable.next(true);
+    return this.productService.deleteAllProductsFromCart();
+  }
+
+  blockUi() {
+    this.blockedUi = !this.blockedUi;
+  }
+
+  // Vietnam Address methods
+  loadProvinces(): void {
+    this.vietnamAddressService.getProvinces().pipe(
+      tap((provinces) => {
+        this.provinces = provinces;
+      }),
+      catchError((err) => {
+        console.error('Error loading provinces:', err);
+        this.toastService.fail('Không thể tải danh sách tỉnh/thành phố');
+        return of([]);
+      }),
+      takeUntil(this.destroyed$)
+    ).subscribe();
+  }
+
+  onProvinceChange(event: any): void {
+    const provinceCode = event.value;
+    this.selectedProvince = provinceCode;
+    this.selectedDistrict = null;
+    this.selectedWard = null;
+    this.districts = [];
+    this.wards = [];
+    
+    // Reset district and ward form controls
+    this.inforShipForm.patchValue({
+      district: null,
+      ward: null
+    });
+    this.inforShipForm.get('district')?.disable();
+    this.inforShipForm.get('ward')?.disable();
+
+    if (provinceCode) {
+      this.inforShipForm.get('district')?.enable();
+      this.vietnamAddressService.getDistricts(provinceCode).pipe(
+        tap((districts) => {
+          this.districts = districts;
+        }),
+        catchError((err) => {
+          console.error('Error loading districts:', err);
+          this.toastService.fail('Không thể tải danh sách quận/huyện');
+          return of([]);
+        }),
+        takeUntil(this.destroyed$)
+      ).subscribe();
+    }
+  }
+
+  onDistrictChange(event: any): void {
+    const districtCode = event.value;
+    this.selectedDistrict = districtCode;
+    this.selectedWard = null;
+    this.wards = [];
+    
+    // Reset ward form control
+    this.inforShipForm.patchValue({
+      ward: null
+    });
+    this.inforShipForm.get('ward')?.disable();
+
+    if (districtCode) {
+      this.inforShipForm.get('ward')?.enable();
+      this.vietnamAddressService.getWards(districtCode).pipe(
+        tap((wards) => {
+          this.wards = wards;
+        }),
+        catchError((err) => {
+          console.error('Error loading wards:', err);
+          this.toastService.fail('Không thể tải danh sách phường/xã');
+          return of([]);
+        }),
+        takeUntil(this.destroyed$)
+      ).subscribe();
+    }
+  }
+
+  onWardChange(event: any): void {
+    this.selectedWard = event.value;
+  }
+
+  /**
+   * Build complete address from form values
+   */
+  private buildCompleteAddress(): Observable<string> {
+    const street = this.inforShipForm.value.street || '';
+    const wardCode = this.inforShipForm.value.ward;
+    const districtCode = this.inforShipForm.value.district;
+    const provinceCode = this.inforShipForm.value.province;
+
+    if (!wardCode || !districtCode || !provinceCode) {
+      return of(street);
+    }
+
+    return forkJoin({
+      ward: this.vietnamAddressService.getWardName(wardCode),
+      district: this.vietnamAddressService.getDistrictName(districtCode),
+      province: this.vietnamAddressService.getProvinceName(provinceCode)
+    }).pipe(
+      map(({ ward, district, province }) => {
+        const parts = [street, ward, district, province].filter(part => part && part.trim());
+        return parts.join(', ');
+      }),
+      catchError(() => {
+        // Fallback to just street if API fails
+        return of(street);
+      })
+    );
+  }
+}

@@ -1,0 +1,366 @@
+<header class="modern-header">
+  <div class="header-container">
+    <!-- Left Section: Logo + Brand Name -->
+    <div class="header-left">
+      @if(roleId == 2 || roleId == 3) {
+        <button class="sidebar-toggler" (click)="toggleSidebar()">
+          <i class="pi pi-bars"></i>
+        </button>
+      }
+      <div class="brand-section">
+        <a [routerLink]="['/']">
+          <img src="../../../../assets/images/hvmlogo.gif" alt="Locker Korea" class="logo-img">
+        </a>
+      </div>
+      
+      <!-- Product Category Menu Button -->
+      <div class="category-menu-container" (mouseleave)="onMenuMouseLeave()" (mouseenter)="onMenuMouseEnter()" *ngIf="roleId !== 2 && roleId !== 3">
+        <button class="category-btn" (mouseenter)="onMenuMouseEnter()" (click)="toggleCategoryMenu()">
+          <i class="pi pi-bars"></i>
+          <span>Danh mục sản phẩm</span>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="category-dropdown" *ngIf="isCategoryMenuOpen" (mouseenter)="onMenuMouseEnter()" (mouseleave)="onMenuMouseLeave()">
+          <!-- Main List -->
+          <ul class="category-list" [class.hidden-on-mobile]="activeMobileSubmenu">
+            <!-- Dynamic Categories -->
+            <li *ngFor="let cat of categories" class="category-item" (click)="onCategorySelect(cat.id.toString())">
+              <span>{{cat.name}}</span>
+              <i class="pi pi-angle-right"></i>
+            </li>
+
+            <!-- Feature Section -->
+            <li class="category-item has-submenu" (click)="openMobileSubmenu('features', $event)">
+              <span>Khóa thông minh theo tính năng</span>
+              <i class="pi pi-angle-right"></i>
+              
+               <!-- Desktop Submenu -->
+               <div class="submenu desktop-submenu">
+                <ul>
+                  <li *ngFor="let feat of features" (click)="onFeatureSelect(feat.id?.toString() || '')">
+                    {{feat.name}}
+                  </li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Mobile Submenu View (Drill-down) -->
+          <div class="mobile-submenu-container" *ngIf="activeMobileSubmenu === 'features'">
+            <div class="mobile-submenu-header" (click)="closeMobileSubmenu($event)">
+              <button class="back-btn">
+                <i class="pi pi-arrow-left"></i>
+              </button>
+              <span class="header-title">Khóa theo tính năng</span>
+            </div>
+            <ul class="mobile-submenu-list">
+              <li *ngFor="let feat of features" (click)="onFeatureSelect(feat.id?.toString() || '')">
+                <span>{{feat.name}}</span>
+                <i class="pi pi-angle-right"></i>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- Center Section: Search -->
+    <div class="header-search-container" [class.mobile-active]="isMobileSearchActive" *ngIf="roleId !== 2 && roleId !== 3">
+      <div class="header-search">
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <button (click)="sendContentSearch()" class="search-btn">
+              <i class="pi pi-search"></i>
+            </button>
+            <input 
+              [(ngModel)]="searchValue" 
+              (input)="onSearchInput($event)"
+              (keydown.enter)="sendContentSearch()"
+              (focus)="showSuggestions = true"
+              (blur)="hideSuggestions()"
+              type="text" 
+              name="search"
+              autocomplete="off"
+              placeholder="Tìm kiếm sản phẩm..." 
+              class="search-input"
+            />
+          </div>
+          
+          <!-- Search Suggestions -->
+          <div class="search-suggestions" *ngIf="showSuggestions && searchSuggestions.length > 0">
+            <div 
+              class="suggestion-item" 
+              *ngFor="let product of searchSuggestions"
+              (mousedown)="selectProduct(product)"
+            >
+              <img [src]="getProductImageUrl(product)" 
+                   [alt]="product.name" 
+                   class="suggestion-image"
+                   (error)="$any($event.target).src = 'assets/images/no-image.png'">
+              <div class="suggestion-info">
+                <div class="suggestion-name">{{ product.name }}</div>
+                <div class="suggestion-price">{{ product.price | currency:'VND':'symbol':'1.0-0' }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="search-suggestions" *ngIf="showSuggestions && searchValue.length > 0 && searchSuggestions.length === 0">
+            <div class="no-results">Không tìm thấy sản phẩm nào</div>
+          </div>
+        </div>
+      </div>
+      <button class="mobile-search-close" *ngIf="isMobileSearchActive" (click)="isMobileSearchActive = false">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <!-- Center Section: Admin/Staff Center Title -->
+    <div class="header-center-title" *ngIf="roleId == 2 || roleId == 3">
+      <h2>{{ roleId == 2 ? 'Admin Center' : 'Staff Center' }}</h2>
+    </div>
+
+    <!-- Right Section: User & Cart -->
+    <div class="header-right">
+
+      <button class="mobile-search-trigger" (click)="isMobileSearchActive = true" *ngIf="roleId !== 2 && roleId !== 3">
+        <i class="pi pi-search"></i>
+      </button>
+
+      <!-- Hotline -->
+      <a class="hotline" *ngIf="roleId !== 2 && roleId !== 3" href="tel:0912424173">
+        <i class="pi pi-phone"></i>
+        <div class="hotline-text">
+          <span class="hotline-label">Hotline</span>
+          <span class="hotline-number">0912424173</span>
+        </div>
+      </a>
+
+      <!-- User Section -->
+      @if(token == null) {
+        <div class="auth-links">
+          <a [routerLink]="['/auth-login']" class="auth-link">Đăng nhập</a>
+          <a [routerLink]="['/register']" class="auth-link pill-strong">Đăng ký</a>
+        </div>
+      } @else {
+        <div class="user-menu-container">
+          <div class="user-menu" (click)="menu.toggle($event)">
+            <div class="user-avatar">
+              <i class="pi pi-user"></i>
+            </div>
+            <span class="user-name">{{userName}}</span>
+            <i class="pi pi-chevron-down"></i>
+          </div>
+          <p-menu #menu [model]="itemsMenuAvatar" [popup]="true" [appendTo]="'body'" styleClass="user-profile-menu"></p-menu>
+        </div>
+      }
+
+      <!-- Cart Section (only for customers) -->
+      @if(roleId == 1 || !roleId) {
+        <div class="cart-section" 
+             (mouseenter)="showCartPreview = true" 
+             (mouseleave)="showCartPreview = false">
+          <a class="cart-link" [routerLink]="['/shoppingCart']">
+            <div class="cart-icon-wrapper">
+              <i class="pi pi-shopping-cart"></i>
+              @if(quantityInCart > 0) {
+                <p-badge [value]="quantityInCart.toString()" severity="danger"></p-badge>
+              }
+            </div>
+            <span class="cart-text">Giỏ hàng</span>
+          </a>
+
+          <!-- Cart Preview Popup -->
+          <div class="cart-preview" [class.show]="showCartPreview" *ngIf="products && products.length > 0">
+            <h5 class="cart-preview-title">Giỏ hàng của bạn</h5>
+            <div class="cart-items">
+              @for (item of products; track item) {
+                <div class="cart-item">
+                  <button 
+                    (click)="deleteProduct($event, item.id)" 
+                    class="remove-btn"
+                    title="Xóa sản phẩm">
+                    <i class="pi pi-times"></i>
+                  </button>
+                  <img [src]="getProductImageUrl(item.products)" 
+                       [alt]="item.products.name" 
+                       class="item-image"
+                       (error)="$any($event.target).src = 'assets/images/no-image.png'" />
+                  <div class="item-info">
+                    <span class="item-name">{{ item.products.name }}</span>
+                    <div class="item-details">
+                      <span>Size: {{ item.size }}</span>
+                      <span class="item-price">{{ item.products.price | currency:'VND':'symbol':'1.0-0'}}</span>
+                      <span>x{{ item.quantity }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="cart-footer">
+              <button [routerLink]="['/shoppingCart']" class="view-cart-btn">Xem giỏ hàng</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  <p-toast></p-toast>
+</header>
+
+<!-- Admin Sidebar -->
+@if(roleId == 2) {
+  <aside class="admin-sidebar" [class.closed]="!isSidebarOpen">
+    <div class="sidebar-header">
+    </div>
+    <nav class="sidebar-nav">
+      <ul class="sidebar-menu">
+        <!-- Tổng quan -->
+        <li class="menu-section-header">
+          <span class="section-title">Tổng quan</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/admin/dashboard']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-chart-bar"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <!-- Quản lý Người dùng & Đơn hàng -->
+        <li class="menu-section-header">
+          <span class="section-title">Người dùng & Đơn hàng</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/userManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-users"></i>
+            <span>Người dùng</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/orderManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-shopping-cart"></i>
+            <span>Đơn hàng</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/admin/returns']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-replay"></i>
+            <span>Trả hàng</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/reviewManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-star"></i>
+            <span>Quản lý đánh giá</span>
+          </a>
+        </li>
+
+        <!-- Quản lý Sản phẩm -->
+        <li class="menu-section-header">
+          <span class="section-title">Sản phẩm</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/productManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-list"></i>
+            <span>Quản lý SP</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/categoryManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-tags"></i>
+            <span>Quản lý thương hiệu</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/admin/features']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-cog"></i>
+            <span>Chức năng</span>
+          </a>
+        </li>
+
+        <!-- Marketing & Nội dung -->
+        <li class="menu-section-header">
+          <span class="section-title">Marketing & Nội dung</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/voucherManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-ticket"></i>
+            <span>Voucher</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/newsManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-book"></i>
+            <span>Tin tức</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/bannerManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-images"></i>
+            <span>Banner</span>
+          </a>
+        </li>
+
+        <!-- Hệ thống & Công cụ -->
+        <li class="menu-section-header">
+          <span class="section-title">Hệ thống & Công cụ</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/admin/ai-management']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-database"></i>
+            <span>Quản lý AI</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+}
+
+<!-- Staff Sidebar -->
+@if(roleId == 3) {
+  <aside class="admin-sidebar" [class.closed]="!isSidebarOpen">
+    <div class="sidebar-header">
+      <h3>KVK Staff</h3>
+    </div>
+    <nav class="sidebar-nav">
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a class="sidebar-link" [routerLink]="['/orderManage']" routerLinkActive="active" (click)="closeSidebarMobile()">
+            <i class="pi pi-shopping-cart"></i>
+            <span>Đơn hàng lắp đặt hỏa tốc</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+}
+
+<nav class="navbar navbar-expand-lg" [class.hidden]="roleId == 2 || roleId == 3">
+  <div class="container-fluid">
+    <ul class="navbar-nav w-100 justify-content-center">
+      @if(roleId == 1 || !roleId){
+        <li class="nav-item">
+          <a class="nav-link" aria-current="true" [routerLink]="['/Home']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <i class="pi pi-home"></i>
+            <span class="nav-text">Trang chủ</span>
+          </a>
+        </li>
+    
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/news']" routerLinkActive="active">
+            <i class="pi pi-book"></i>
+            <span class="nav-text">Tin tức</span>
+          </a>
+        </li>
+    
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/allProduct']" routerLinkActive="active">
+            <i class="pi pi-th-large"></i>
+            <span class="nav-text">Tất cả sản phẩm</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+</nav>

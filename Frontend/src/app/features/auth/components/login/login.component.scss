@@ -1,0 +1,597 @@
+@import '../../../../../assets/abstracts/variable.scss';
+
+// Material 3 Design Tokens (Dark Theme approximation)
+$md-sys-color-surface: #141218;
+$md-sys-color-surface-container: #1D1B20;
+$md-sys-color-primary: #D0BCFF;
+$md-sys-color-on-primary: #381E72;
+$md-sys-color-primary-container: #4F378B;
+$md-sys-color-on-primary-container: #EADDFF;
+$md-sys-color-secondary: #CCC2DC;
+$md-sys-color-on-secondary: #332D41;
+$md-sys-color-error: #F2B8B5;
+$md-sys-color-on-surface: #E6E1E5;
+$md-sys-color-on-surface-variant: #CAC4D0;
+$md-sys-color-outline: #938F99;
+$md-sys-color-outline-variant: #49454F;
+
+.login-page {
+  min-height: 100vh;
+  background: url('../../../../../assets/images/unnamed.jpg') no-repeat center center;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-family: 'Roboto', sans-serif;
+  padding: 2rem 5rem 2rem 1rem;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); // Slightly darker overlay
+    z-index: 1;
+    backdrop-filter: blur(2px); // Subtle blur for background
+  }
+}
+
+.login-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 420px; // Slightly wider
+}
+
+.login-card {
+  background: rgba(29, 27, 32, 0.85); // Surface Container with opacity
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px; // Extra large rounded corners (M3 Expressive)
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  animation: slideUp 0.6s cubic-bezier(0.2, 0.0, 0, 1.0); // M3 Easing
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+.card-header {
+  padding: 3rem 2.5rem 1.5rem; // More top padding
+  text-align: left; // Align left for expressive look
+  
+  .title {
+    margin: 0 0 0.5rem;
+    font-size: 2.25rem; // Larger display text
+    font-weight: 400; // Regular weight for Display styles
+    color: $md-sys-color-on-surface;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: $md-sys-color-on-surface-variant;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.25px;
+  }
+}
+
+.login-form {
+  padding: 1rem 2.5rem 3rem;
+  animation: fadeIn 0.3s cubic-bezier(0.2, 0.0, 0, 1.0);
+
+  &.hidden {
+    display: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: $md-sys-color-on-surface-variant;
+    font-size: 0.875rem;
+    letter-spacing: 0.1px;
+    margin-left: 4px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.05); // Surface Variant
+    border: 1px solid $md-sys-color-outline-variant;
+    border-radius: 16px; // Medium rounded corners
+    color: $md-sys-color-on-surface;
+    font-size: 1rem;
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+
+    &::placeholder {
+      color: rgba(230, 225, 229, 0.38);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: $md-sys-color-outline;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $md-sys-color-primary;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 4px rgba(208, 188, 255, 0.1);
+    }
+    
+    &.ng-invalid.ng-touched {
+      border-color: $md-sys-color-error;
+      
+      &:focus {
+        box-shadow: 0 0 0 4px rgba(242, 184, 181, 0.1);
+      }
+    }
+  }
+}
+
+.password-field {
+  position: relative;
+  
+  .form-input {
+    padding-right: 3.5rem;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: $md-sys-color-on-surface-variant;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(230, 225, 229, 0.08);
+      color: $md-sys-color-on-surface;
+    }
+    
+    i {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+.error-message {
+  margin-top: 0.5rem;
+  margin-left: 4px;
+  
+  small {
+    color: $md-sys-color-error;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    
+    &::before {
+      content: 'error';
+      font-family: 'Material Icons'; // Assuming Material Icons are available, or use PrimeIcons
+      font-family: 'primeicons';
+      content: '\e90b'; // pi-exclamation-circle
+      font-size: 0.875rem;
+    }
+  }
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: $md-sys-color-on-surface-variant;
+    user-select: none;
+    
+    input {
+      display: none;
+      
+      &:checked + .checkmark {
+        background-color: $md-sys-color-primary;
+        border-color: $md-sys-color-primary;
+        
+        &::after {
+          display: block;
+        }
+      }
+    }
+    
+    .checkmark {
+      width: 18px;
+      height: 18px;
+      border: 2px solid $md-sys-color-outline;
+      border-radius: 4px; // Small rounded
+      margin-right: 0.75rem;
+      position: relative;
+      transition: all 0.2s;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        display: none;
+        left: 5px;
+        top: 1px;
+        width: 5px;
+        height: 10px;
+        border: solid $md-sys-color-on-primary;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+    
+    &:hover .checkmark {
+      border-color: $md-sys-color-on-surface;
+    }
+  }
+
+  .forgot-link {
+    color: $md-sys-color-primary;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+    
+    &:hover {
+      color: lighten(#D0BCFF, 10%);
+      text-decoration: underline;
+    }
+  }
+}
+
+.login-btn {
+  width: 100%;
+  padding: 1rem;
+  background: $md-sys-color-primary;
+  color: $md-sys-color-on-primary;
+  border: none;
+  border-radius: 100px; // Pill shape
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+
+  &:hover:not(:disabled) {
+    background: lighten(#D0BCFF, 5%);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  &:disabled {
+    background: rgba(230, 225, 229, 0.12);
+    color: rgba(230, 225, 229, 0.38);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 2rem 0;
+  color: $md-sys-color-outline;
+  
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid $md-sys-color-outline-variant;
+  }
+  
+  span {
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    color: $md-sys-color-on-surface-variant;
+  }
+}
+
+// Material 3 Expressive Google Button - Dark Theme
+.google-login-btn {
+  width: 100%;
+  min-height: 56px; // Material 3 Expressive: taller buttons
+  padding: 0.875rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05); // Surface variant - dark
+  border: 1.5px solid rgba(255, 255, 255, 0.12); // Outline variant with more opacity
+  border-radius: 28px; // Material 3 Expressive: extra large rounded corners
+  color: $md-sys-color-on-surface;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.0, 0, 1.0); // M3 Expressive easing
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+
+  // Ripple effect container
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.4),
+      0 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px); // More pronounced lift
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      0 1px 2px rgba(0, 0, 0, 0.2);
+
+    &::before {
+      width: 300px;
+      height: 300px;
+    }
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(208, 188, 255, 0.5); // Primary color with opacity
+    box-shadow: 
+      0 0 0 4px rgba(208, 188, 255, 0.12), // Focus ring
+      0 4px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .google-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 4px;
+    transition: all 0.3s cubic-bezier(0.2, 0.0, 0, 1.0);
+  }
+
+  .google-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s cubic-bezier(0.2, 0.0, 0, 1.0);
+  }
+
+  .google-btn-text {
+    font-weight: 500;
+    letter-spacing: 0.15px; // Slightly more letter spacing for expressive
+    color: $md-sys-color-on-surface;
+    transition: color 0.3s;
+  }
+
+  &:hover {
+    .google-icon-wrapper {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.05);
+    }
+
+    .google-icon {
+      transform: scale(1.1);
+    }
+
+    .google-btn-text {
+      color: lighten($md-sys-color-on-surface, 5%);
+    }
+  }
+
+  &:active {
+    .google-icon-wrapper {
+      transform: scale(0.95);
+    }
+
+    .google-icon {
+      transform: scale(1);
+    }
+  }
+}
+
+// Hidden Google button container
+.google-signin-container {
+  display: none !important;
+  visibility: hidden;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.register-prompt {
+  text-align: center;
+  font-size: 0.95rem;
+  color: $md-sys-color-on-surface-variant;
+  
+  .register-link {
+    color: $md-sys-color-primary;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 0.25rem;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.back-home {
+  position: absolute;
+  bottom: -3rem;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $md-sys-color-on-surface-variant;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    transition: all 0.2s;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(4px);
+    
+    &:hover {
+      background: rgba(255,255,255,0.1);
+      color: $md-sys-color-on-surface;
+    }
+    
+    i {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// Forgot Password Form
+.forgot-password-form {
+  padding: 1rem 2.5rem 3rem;
+  animation: fadeIn 0.3s cubic-bezier(0.2, 0.0, 0, 1.0);
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.forgot-password-description {
+  margin-bottom: 2rem;
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: $md-sys-color-on-surface-variant;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding: 0 0.5rem;
+  }
+}
+
+.back-to-login {
+  margin-top: 1.5rem;
+  text-align: center;
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $md-sys-color-primary;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+
+    &:hover {
+      color: lighten($md-sys-color-primary, 10%);
+      background: rgba(208, 188, 255, 0.1);
+      transform: translateX(-3px);
+    }
+
+    i {
+      font-size: 0.8rem;
+      transition: transform 0.2s;
+    }
+
+    &:hover i {
+      transform: translateX(-2px);
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .login-page {
+    padding: 1rem;
+    justify-content: center; // Center on mobile
+  }
+  
+  .login-card {
+    border-radius: 20px;
+  }
+  
+  .card-header {
+    padding: 2rem 1.5rem 1rem;
+    
+    .title {
+      font-size: 1.75rem;
+    }
+  }
+  
+  .login-form,
+  .forgot-password-form {
+    padding: 1rem 1.5rem 2rem;
+  }
+}

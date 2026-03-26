@@ -1,0 +1,50 @@
+package com.example.Sneakers.models;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.Formula;
+
+import java.util.List;
+
+@Entity
+@Table(name = "products")
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Product extends BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name", nullable = false, length = 350)
+    private String name;
+
+    private Long price;
+
+    @Column(name = "thumbnail", length = 300)
+    private String thumbnail;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    private Long discount;
+
+    @Column(name = "quantity")
+    private Long quantity;
+
+    // Virtual column for sorting: true (1) if quantity > 0, else false (0)
+    @Formula("(CASE WHEN quantity > 0 THEN 1 ELSE 0 END)")
+    private Boolean inStock;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ProductImage> productImages;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ProductFeature> productFeatures;
+}

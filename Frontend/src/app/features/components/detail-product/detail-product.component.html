@@ -1,0 +1,765 @@
+<!-- Global components -->
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+@if (mainProduct && (roleId == 1 || roleId == 3 || !roleId)){
+  <div class="product-detail-page">
+    
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-section">
+      <div class="container">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a routerLink="/">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a routerLink="/allProduct">Tất cả sản phẩm</a></li>
+            <li class="breadcrumb-item" *ngIf="categoryNameOfProduct">
+              <a [routerLink]="['/allProduct']" [queryParams]="{category: categoryId}">{{categoryNameOfProduct}}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{mainProduct.name}}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Product Detail -->
+    <div class="product-detail-container">
+      <div class="container">
+        <div class="row g-5">
+          <!-- Product Images -->
+          <div class="col-lg-6">
+            <div class="product-gallery">
+              <p-galleria [value]="images" [numVisible]="5" [circular]="true" [showItemNavigators]="true"
+                [responsiveOptions]="responsiveOptions" [containerStyle]="{ 'max-width': '100%' }">
+                <ng-template pTemplate="item" let-item>
+                  <div class="gallery-item">
+                    <img [src]="apiImage + item.image_url" [alt]="mainProduct.name" />
+                  </div>
+                </ng-template>
+                <ng-template pTemplate="thumbnail" let-item>
+                  <div class="gallery-thumbnail">
+                    <img [src]="apiImage + item.image_url" [alt]="mainProduct.name" />
+                  </div>
+                </ng-template>
+              </p-galleria>
+            </div>
+          </div>
+  
+          <!-- Product Information -->
+          <div class="col-lg-6">
+            <div class="product-info">
+              <!-- Product Title -->
+              <h1 class="product-title">{{mainProduct.name}}</h1>
+
+              <!-- Product Rating -->
+              @if(totalReviews > 0) {
+                <div class="product-rating-summary">
+                  <p-rating [(ngModel)]="averageRating" [readonly]="true" [cancel]="false"></p-rating>
+                  <span class="rating-text">{{averageRating | number:'1.1-1'}}</span>
+                  <span class="rating-count">({{totalReviews}} đánh giá)</span>
+                </div>
+              }
+
+              <!-- Product Badge -->
+              @if(mainProduct.discount > 0) {
+                <span class="product-badge">-{{mainProduct.discount}}%</span>
+              }
+              
+              <!-- Product Meta -->
+              <div class="product-meta">
+                <span class="meta-item">ID: {{mainProduct.id}}</span>
+                <span class="meta-item" [ngClass]="{'in-stock': mainProduct.quantity > 0, 'out-of-stock': mainProduct.quantity === 0}">
+                  {{mainProduct.quantity > 0 ? 'Còn hàng' : 'Hết hàng'}}
+                </span>
+                @if(mainProduct.sold_quantity !== undefined && mainProduct.sold_quantity > 0) {
+                  <span class="meta-item sold-quantity">
+                    Đã bán: {{mainProduct.sold_quantity}}
+                  </span>
+                }
+              </div>
+              
+              <!-- Product Price -->
+              <div class="product-price">
+                <span class="current-price">{{mainProduct.price | currency:'VND':'symbol':'1.0-0'}}</span>
+                @if(mainProduct.discount > 0) {
+                  <span class="original-price">{{mainProduct.price / (1-mainProduct.discount/100) | currency:'VND':'symbol':'1.0-0'}}</span>
+                }
+              </div>
+              
+              <!-- Size selection removed for lock products -->
+              
+              <!-- Quantity Selection -->
+              <div class="quantity-selection">
+                <h4 class="selection-title">Số lượng</h4>
+                <div class="quantity-controls">
+                  <p-inputNumber 
+                    [min]="1" 
+                    [max]="mainProduct.quantity"
+                    [(ngModel)]="quantity" 
+                    buttonLayout="horizontal"
+                    [showButtons]="true" 
+                    decrementButtonClass="p-button-secondary" 
+                    incrementButtonClass="p-button-secondary"
+                    incrementButtonIcon="pi pi-plus" 
+                    decrementButtonIcon="pi pi-minus">
+                  </p-inputNumber>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="product-actions">
+                <button 
+                  pButton
+                  type="button"
+                  label="Thêm vào giỏ hàng"
+                  icon="pi pi-shopping-cart"
+                  class="p-button-raised p-button-primary add-to-cart-btn"
+                  (click)="addToCart()" 
+                  [disabled]="mainProduct.quantity === 0">
+                </button>
+                
+                <button 
+                  pButton
+                  type="button"
+                  label="Mua ngay"
+                  icon="pi pi-bolt"
+                  class="p-button-raised p-button-success buy-now-btn"
+                  (click)="buyNow()" 
+                  [disabled]="mainProduct.quantity === 0">
+                </button>
+              </div>
+              
+              <!-- Product Features -->
+              <div class="product-features">
+                <div class="feature-item">
+                  <i class="pi pi-shield"></i>
+                  <span>Bảo hành chính hãng 12 tháng</span>
+                </div>
+                <div class="feature-item">
+                  <i class="pi pi-refresh"></i>
+                  <span>Đổi trả trong 14 ngày</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Tabs Section -->
+    <div class="product-tabs-section">
+      <div class="container">
+        <p-tabView styleClass="product-tabs">
+          <!-- Tab 1: Mô tả -->
+          <p-tabPanel header="Mô tả sản phẩm">
+            <!-- Product Features Section -->
+            @if (mainProduct.features && mainProduct.features.length > 0) {
+              <div class="product-features-section">
+                <h3 class="section-title">Chức năng nổi bật</h3>
+                <div class="features-grid">
+                  @for (feature of mainProduct.features; track feature.id) {
+                    <div class="feature-card">
+                      <div class="feature-icon">
+                        <i class="pi pi-cog"></i>
+                      </div>
+                      <div class="feature-content">
+                        <h5 class="feature-title">{{ feature.name }}</h5>
+                        <p class="feature-description">{{ feature.description }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          
+            <!-- Product Detail Description Section -->
+            <div class="product-description-article-section">
+              <div class="article-container">
+                <h2 class="article-title">Đặc điểm nổi bật của {{mainProduct.name}}</h2>
+                
+                <div class="article-content" 
+                     [class.collapsed]="!isDescriptionExpanded && showExpandToggle"
+                     [innerHTML]="getSafeHtml(mainProduct.description || '')"></div>
+
+                @if (showExpandToggle) {
+                  <div class="article-expand-toggle">
+                    <button type="button" class="expand-button" (click)="toggleDescription()">
+                      {{ isDescriptionExpanded ? 'Thu gọn' : 'Xem thêm' }}
+                      <i class="pi" [ngClass]="isDescriptionExpanded ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+                    </button>
+                  </div>
+                }
+                
+                @if(mainProduct.features && mainProduct.features.length > 0) {
+                  <div class="features-accordion mt-5">
+                    <h3 class="accordion-title">Nội dung chính</h3>
+                    <div class="accordion-items">
+                      @for (feature of mainProduct.features; track feature.id; let idx = $index) {
+                        <div class="accordion-item">
+                          <div class="accordion-header" (click)="toggleAccordion(idx)">
+                            <span class="accordion-number">{{idx + 1}}.</span>
+                            <span class="accordion-text">{{ feature.name }}</span>
+                            <i class="pi" [ngClass]="accordionStates[idx] ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+                          </div>
+                          <div class="accordion-content" [ngClass]="{'show': accordionStates[idx]}">
+                            <p>{{ feature.description }}</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </p-tabPanel>
+
+          <!-- Tab 2: Sản phẩm liên quan -->
+          <p-tabPanel header="Sản phẩm liên quan">
+            <div class="related-products-wrapper">
+              @if(relatedProducts.length > 0) {
+                <div class="products-grid">
+                  @for(product of relatedProducts; track product.id){
+                    <div class="product-card-wrapper">
+                      <div class="related-product-card" (click)="goToDetail(product.id)">
+                        <div class="product-image-container">
+                          <div class="product-image">
+                            @if(product.discount > 0) {
+                              <span class="discount-badge">
+                                <span class="badge-text">-{{product.discount}}%</span>
+                              </span>
+                            }
+                            <div class="image-wrapper">
+                              <img [src]="getProductImageUrl(product)" 
+                                   [alt]="product.name"
+                                   (error)="handleImageError($event)"
+                                   loading="lazy">
+                              <div class="image-overlay">
+                                <div class="overlay-content">
+                                  <i class="pi pi-eye"></i>
+                                  <span>Xem chi tiết</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="product-content">
+                          <h5 class="product-name" [title]="product.name">{{product.name}}</h5>
+                          <div class="product-price">
+                            <span class="current-price">{{product.price | currency:'VND':'symbol':'1.0-0'}}</span>
+                            @if(product.discount > 0) {
+                              <span class="original-price">{{product.price / (1-product.discount/100) | currency:'VND':'symbol':'1.0-0'}}</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="no-products-message">
+                  <i class="pi pi-inbox"></i>
+                  <p>Không có sản phẩm liên quan.</p>
+                </div>
+              }
+            </div>
+          </p-tabPanel>
+
+          <!-- Tab 3: Đánh giá -->
+          <p-tabPanel header="Đánh giá ({{totalReviews}})">
+            <div class="reviews-content">
+              <!-- Rating Summary -->
+              <div class="rating-summary">
+                <div class="average-rating">
+                  <h3>{{averageRating | number:'1.1-1'}}</h3>
+                  <p-rating [(ngModel)]="averageRating" [readonly]="true" [cancel]="false"></p-rating>
+                  <p>{{totalReviews}} đánh giá</p>
+                </div>
+              </div>
+
+              <!-- Add Review Form -->
+              @if(token && !hasUserReviewed) {
+                <div class="add-review-form">
+                  <h4>Viết đánh giá của bạn</h4>
+                  <div class="form-group">
+                    <label>Đánh giá:</label>
+                    <p-rating [(ngModel)]="newReviewRating" [cancel]="false"></p-rating>
+                  </div>
+                  <div class="form-group">
+                    <label>Nhận xét:</label>
+                    <textarea 
+                      [(ngModel)]="newReviewComment" 
+                      rows="4" 
+                      pInputTextarea 
+                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm...">
+                    </textarea>
+                  </div>
+                  <button 
+                    pButton 
+                    label="Gửi đánh giá" 
+                    icon="pi pi-send" 
+                    (click)="submitReview()"
+                    [disabled]="isSubmittingReview"
+                    [loading]="isSubmittingReview">
+                  </button>
+                </div>
+              } @else if(token && hasUserReviewed) {
+                <div class="already-reviewed">
+                  <p><i class="pi pi-check-circle"></i> Bạn đã đánh giá sản phẩm này.</p>
+                </div>
+              } @else {
+                <div class="login-prompt">
+                  <p>Vui lòng <a [routerLink]="['/auth-login']">đăng nhập</a> để đánh giá sản phẩm.</p>
+                </div>
+              }
+
+              <!-- Reviews History -->
+              <div class="reviews-history">
+                <h4 class="history-title">Lịch sử đánh giá</h4>
+                <div class="reviews-list">
+                  @if(reviews.length > 0) {
+                    @for(review of reviews; track review.id) {
+                      <div class="review-item">
+                        <div class="review-header">
+                          <div class="reviewer-info">
+                            <i class="pi pi-user"></i>
+                            <span class="reviewer-name">{{review.userName}}</span>
+                          </div>
+                          <div class="review-rating">
+                            <p-rating [(ngModel)]="review.rating" [readonly]="true" [cancel]="false"></p-rating>
+                          </div>
+                        </div>
+                        <div class="review-body">
+                          <p>{{review.comment}}</p>
+                        </div>
+                        @if(review.staffReply) {
+                          <div class="staff-reply">
+                            <div class="staff-reply-header">
+                              <i class="pi pi-check-circle"></i>
+                              <strong>Phản hồi từ nhân viên</strong>
+                              <span class="staff-name">{{review.staffReplyByName}}</span>
+                            </div>
+                            <p class="staff-reply-content">{{review.staffReply}}</p>
+                            <span class="staff-reply-date">{{review.staffReplyAt | date:'dd/MM/yyyy HH:mm'}}</span>
+                          </div>
+                        }
+                        <div class="review-footer">
+                          <span class="review-date">{{review.createdAt | date:'dd/MM/yyyy HH:mm'}}</span>
+                          @if(review.userId === currentUserId && review.id) {
+                            <button 
+                              pButton 
+                              icon="pi pi-trash" 
+                              class="p-button-text p-button-danger p-button-sm" 
+                              (click)="deleteReview(review.id)"
+                              [pTooltip]="'Xóa đánh giá (ID: ' + review.id + ')'">
+                            </button>
+                          }
+                          @if((roleId === 2 || roleId === 3) && !review.staffReply && review.id) {
+                            <button 
+                              pButton 
+                              icon="pi pi-reply" 
+                              class="p-button-text p-button-sm" 
+                              (click)="openReplyDialog(review)"
+                              [pTooltip]="'Phản hồi đánh giá'">
+                              Phản hồi
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <p class="no-reviews">Chưa có đánh giá nào cho sản phẩm này.</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </p-tabPanel>
+        </p-tabView>
+      </div>
+    </div>
+  </div>
+} 
+@else if (mainProduct && roleId == 2) {
+    <div class="admin-edit-container">
+
+      <div class="admin-header">
+        <h2>Chỉnh sửa sản phẩm</h2>
+        <div class="header-actions">
+          <button pButton pRipple 
+                  type="button" 
+                  label="Quay lại" 
+                  icon="pi pi-arrow-left"
+                  class="p-button-outlined"
+                  (click)="goBack()">
+          </button>
+          <button pButton pRipple 
+                  type="button" 
+                  label="Xóa sản phẩm" 
+                  icon="pi pi-trash" 
+                  class="p-button-danger p-button-outlined"
+                  (click)="confirmDelete()">
+          </button>
+          <button pButton pRipple 
+                  type="button" 
+                  label="Cập nhật sản phẩm" 
+                  icon="pi pi-check" 
+                  class="p-button-raised"
+                  (click)="updateProductAdmin(fileUpload)"
+                  [disabled]="!productForm.valid">
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-content">
+        <!-- Left Column - Product Images -->
+        <div class="admin-images-column">
+          <p-card styleClass="images-card">
+            <ng-template pTemplate="header">
+              <h3>Ảnh sản phẩm hiện tại</h3>
+            </ng-template>
+            
+            <div class="current-product-gallery" *ngIf="images && images.length > 0">
+              <p-galleria [value]="images" 
+                          [numVisible]="4" 
+                          [circular]="true" 
+                          [showItemNavigators]="true"
+                          [showThumbnails]="true"
+                          [responsiveOptions]="responsiveOptions" 
+                          [containerStyle]="{ 'max-width': '100%' }">
+                <ng-template pTemplate="item" let-item>
+                  <img [src]="apiImage + item.image_url" 
+                       style="width: 100%; max-height: 400px; object-fit: contain;" 
+                       alt="Product image" />
+                </ng-template>
+                <ng-template pTemplate="thumbnail" let-item>
+                  <div class="grid grid-nogutter justify-content-center">
+                    <img [src]="apiImage + item.image_url" 
+                         style="width: 80%; object-fit: cover;" 
+                         alt="Thumbnail" />
+                  </div>
+                </ng-template>
+              </p-galleria>
+            </div>
+
+            <div class="current-images-grid" *ngIf="images && images.length > 0">
+              <h4>Tất cả ảnh ({{ images.length }})</h4>
+              <div class="images-grid">
+                <div *ngFor="let image of images; trackBy: trackByImageId" 
+                     class="image-item" 
+                     [class.selected-thumbnail]="selectedThumbnail === image.image_url">
+                  <img [src]="apiImage + image.image_url" alt="Product image" class="image-preview">
+                  <div class="image-info">
+                    <span class="image-id">ID: {{ image.id }}</span>
+                    <div class="image-actions">
+                      <button pButton 
+                              pRipple 
+                              type="button" 
+                              [icon]="selectedThumbnail === image.image_url ? 'pi pi-check-circle' : 'pi pi-check'"
+                              [class]="selectedThumbnail === image.image_url ? 'p-button-rounded p-button-success p-button-sm' : 'p-button-rounded p-button-text p-button-success p-button-sm'"
+                              pTooltip="Chọn làm thumbnail" 
+                              (click)="selectThumbnail(image.image_url)">
+                      </button>
+                      <button pButton 
+                              pRipple 
+                              type="button" 
+                              icon="pi pi-trash"
+                              class="p-button-rounded p-button-text p-button-danger p-button-sm"
+                              pTooltip="Xóa ảnh này" 
+                              (click)="deleteImage(image.id)">
+                      </button>
+                    </div>
+                  </div>
+                  <div class="thumbnail-badge" *ngIf="selectedThumbnail === image.image_url">
+                    <i class="pi pi-check-circle"></i>
+                    <span>Thumbnail</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-images" *ngIf="!images || images.length === 0">
+              <i class="pi pi-image" style="font-size: 3rem; color: #ccc;"></i>
+              <p>Sản phẩm chưa có ảnh</p>
+            </div>
+          </p-card>
+
+          <!-- Admin: Reviews & Comments Viewer under images column -->
+          <p-card styleClass="reviews-card mt-3">
+            <ng-template pTemplate="header">
+              <h3>Đánh giá & Bình luận</h3>
+            </ng-template>
+            <div class="reviews-summary">
+              <div class="rating-display">
+                <p-rating [(ngModel)]="averageRating" [readonly]="true" [cancel]="false"></p-rating>
+                <span class="rating-text">{{averageRating | number:'1.1-1'}} / 5 ({{totalReviews}} đánh giá)</span>
+              </div>
+            </div>
+            <div class="admin-reviews-list">
+              @if(reviews.length > 0) {
+                @for(review of reviews; track review.id) {
+                  <div class="admin-review-item">
+                    <div class="review-header">
+                      <div class="reviewer-info">
+                        <i class="pi pi-user"></i>
+                        <span class="reviewer-name">{{review.userName || 'Khách hàng'}}</span>
+                      </div>
+                      <span class="review-date">{{review.createdAt | date:'dd/MM/yyyy HH:mm'}}</span>
+                    </div>
+                    <div class="review-rating">
+                      <p-rating [(ngModel)]="review.rating" [readonly]="true" [cancel]="false"></p-rating>
+                    </div>
+                    <div class="review-comment">
+                      <p>{{review.comment}}</p>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div class="no-reviews">
+                  <i class="pi pi-inbox"></i>
+                  <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                </div>
+              }
+            </div>
+          </p-card>
+        </div>
+
+        <!-- Right Column - Edit Form -->
+        <div class="admin-form-column">
+          <p-card styleClass="edit-form-card">
+            <ng-template pTemplate="header">
+              <h3>Thông tin sản phẩm</h3>
+            </ng-template>
+  
+            <div class="edit-form">
+              <form class="p-fluid" [formGroup]="productForm">
+                <div class="grid">
+                  <div class="col-12 md:col-6">
+                    <div class="field">
+                      <label for="productName">Tên sản phẩm</label>
+                      <input id="productName" 
+                             type="text" 
+                             pInputText 
+                             formControlName="productName"
+                             placeholder="Nhập tên sản phẩm"/>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <div class="field">
+                      <label for="category">Danh mục</label>
+                      <p-dropdown id="category"
+                                  [options]="categoriesOptions" 
+                                  [placeholder]="categoryNameOfProduct"
+                                  optionLabel="label"
+                                  optionValue="value"
+                                  (onChange)="onCategoryChange($event)">
+                      </p-dropdown>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="features">Chức năng khóa cửa</label>
+                  <p-multiSelect
+                    id="features"
+                    [options]="featuresOptions"
+                    [(ngModel)]="selectedFeatures"
+                    [ngModelOptions]="{standalone: true}"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Chọn chức năng"
+                    [maxSelectedLabels]="3"
+                    selectedItemsLabel="{0} chức năng đã chọn"
+                    [filter]="true"
+                    filterPlaceHolder="Tìm kiếm...">
+                  </p-multiSelect>
+                  <small class="form-hint">Chọn các chức năng mà khóa cửa này có</small>
+                </div>
+  
+                <div class="grid">
+                  <div class="col-12 md:col-4">
+                    <div class="field">
+                      <label for="price">Giá (VNĐ)</label>
+                      <p-inputNumber id="price" 
+                                     formControlName="price"
+                                     mode="currency"
+                                     currency="VND"
+                                     locale="vi-VN"
+                                     placeholder="0">
+                      </p-inputNumber>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="field">
+                      <label for="discount">Giảm giá (%)</label>
+                      <p-inputNumber id="discount" 
+                                     formControlName="discount"
+                                     [min]="0"
+                                     [max]="100"
+                                     placeholder="0">
+                      </p-inputNumber>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="field">
+                      <label for="quantity">Số lượng</label>
+                      @if(!addQuantityMode) {
+                        <p-inputNumber id="quantity" 
+                                       formControlName="quantity"
+                                       [min]="0"
+                                       placeholder="0">
+                        </p-inputNumber>
+                        <small class="form-hint">
+                          Số lượng nhập sẽ thay thế số lượng hiện có ({{mainProduct?.quantity || 0}})
+                        </small>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Box riêng cho nhập thêm số lượng hàng mới -->
+                @if(addQuantityMode) {
+                  <div class="grid mt-3">
+                    <div class="col-12">
+                      <p-card styleClass="new-quantity-card">
+                        <ng-template pTemplate="header">
+                          <div class="d-flex align-items-center gap-2">
+                            <i class="pi pi-box"></i>
+                            <h4 class="mb-0">Nhập thêm số lượng hàng mới</h4>
+                          </div>
+                        </ng-template>
+                        <div class="field">
+                          <label for="newQuantity">Số lượng hàng mới nhập</label>
+                          <p-inputNumber id="newQuantity" 
+                                         formControlName="newQuantity"
+                                         [min]="-999999"
+                                         placeholder="Nhập số lượng (có thể âm để trừ hàng)">
+                          </p-inputNumber>
+                          <small class="form-hint">
+                            Số lượng này sẽ được cộng vào số lượng hiện tại ({{mainProduct?.quantity || 0}})
+                            <br>
+                            <strong>Số lượng sau khi cộng: {{(mainProduct?.quantity || 0) + (productForm.value.newQuantity || 0)}}</strong>
+                          </small>
+                        </div>
+                      </p-card>
+                    </div>
+                  </div>
+                }
+
+                <!-- Toggle để chuyển đổi giữa 2 chế độ -->
+                <div class="grid mt-2">
+                  <div class="col-12">
+                    <div class="quantity-mode-toggle">
+                      <p-checkbox 
+                        [(ngModel)]="addQuantityMode"
+                        [ngModelOptions]="{standalone: true}"
+                        inputId="addQuantityCheckbox"
+                        [binary]="true"
+                        (onChange)="onAddQuantityModeChange()">
+                      </p-checkbox>
+                      <label for="addQuantityCheckbox" class="ml-2">
+                        <strong>Cộng thêm lượng hàng mới nhập</strong>
+                        <small class="d-block text-muted">Bật để nhập thêm số lượng hàng mới vào kho</small>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+  
+                <div class="field">
+                  <label>Thêm ảnh mới</label>
+                  <p-fileUpload #fileUpload
+                                mode="advanced" 
+                                name="files[]"
+                                [multiple]="true" 
+                                accept="image/*" 
+                                [maxFileSize]="5000000"
+                                (onSelect)="onFilesSelected($event)"
+                                (onError)="onFileUploadError($event)"
+                                chooseLabel="Chọn ảnh"
+                                [showUploadButton]="false"
+                                cancelButtonLabel="Hủy">
+                    <ng-template pTemplate="content">
+                        <!-- We use the default file list provided by the component -->
+                    </ng-template>
+                  </p-fileUpload>
+                  <small class="upload-hint">
+                    Chọn một hoặc nhiều ảnh để thêm. 
+                    Tối đa 5 ảnh (hiện có: {{ images?.length || 0 }}/5). 
+                    Mỗi ảnh tối đa 5MB.
+                  </small>
+                </div>
+
+                <div class="field">
+                  <label for="description">Mô tả sản phẩm (HTML)</label>
+                  
+                  <!-- AI Generate Button -->
+                  <div class="ai-generate-section mb-3">
+                    <button pButton 
+                            type="button"
+                            label="Tạo mô tả bằng KVK Intelligence" 
+                            icon="pi pi-sparkles"
+                            class="kvk-ai-button"
+                            (click)="generateProductDescription()"
+                            [disabled]="isGeneratingDescription || !productForm.get('productName')?.value"
+                            [loading]="isGeneratingDescription">
+                    </button>
+                  </div>
+
+                  <!-- Loading Message -->
+                  <div *ngIf="isGeneratingDescription" class="ai-loading-message">
+                    <i class="pi pi-spin pi-spinner"></i>
+                    <span>KVK Intelligence đang tạo mô tả chuyên nghiệp cho sản phẩm...</span>
+                  </div>
+
+                  <ckeditor [editor]="Editor" formControlName="description"></ckeditor>
+                </div>
+              </form>
+            </div>
+  
+          </p-card>
+        </div>
+      </div>
+    </div>
+    
+  }
+  @else if (mainProduct && roleId == 100) {}
+
+  <!-- Reply Dialog -->
+  <p-dialog 
+    [(visible)]="replyDialogVisible" 
+    [modal]="true" 
+    [style]="{width: '600px'}"
+    header="Phản hồi đánh giá"
+    [closable]="true">
+    <div class="reply-dialog-content">
+      @if(selectedReview) {
+        <div class="review-preview mb-3">
+          <p><strong>{{selectedReview.userName}}</strong></p>
+          <p>{{selectedReview.comment}}</p>
+        </div>
+        <div class="form-group">
+          <label>Nội dung phản hồi:</label>
+          <textarea 
+            [(ngModel)]="replyText" 
+            rows="5" 
+            class="form-control"
+            placeholder="Nhập phản hồi của bạn...">
+          </textarea>
+        </div>
+      }
+    </div>
+    <ng-template pTemplate="footer">
+      <button 
+        pButton 
+        label="Hủy" 
+        icon="pi pi-times" 
+        class="p-button-text" 
+        (click)="replyDialogVisible = false">
+      </button>
+      <button 
+        pButton 
+        label="Gửi phản hồi" 
+        icon="pi pi-send" 
+        (click)="submitReply()"
+        [disabled]="isSubmittingReply || !replyText.trim()"
+        [loading]="isSubmittingReply">
+      </button>
+    </ng-template>
+  </p-dialog>

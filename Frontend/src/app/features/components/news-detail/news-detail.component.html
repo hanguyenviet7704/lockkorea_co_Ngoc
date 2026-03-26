@@ -1,0 +1,71 @@
+<section class="news-detail py-5">
+  <div class="container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center my-5">
+      <div class="spinner-border text-danger" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+      </div>
+    </div>
+
+    <!-- News Content + Sidebar -->
+    <div *ngIf="!isLoading && news" class="row g-5 news-layout">
+      <div class="col-lg-8">
+        <!-- Back Button -->
+        <button class="btn-back mb-4" (click)="goBack()">
+          <i class="pi pi-arrow-left"></i> Quay lại
+        </button>
+
+        <!-- News Article -->
+        <article class="news-article">
+          <header class="news-header-block">
+            <p class="news-breadcrumb mb-2">
+              <span class="bullet">•</span>
+              <span>{{ news?.created_at ? formatDate(news.created_at) : '' }}</span>
+            </p>
+
+            <h1 class="news-headline">{{ news.title }}</h1>
+            
+            <p *ngIf="news.summary" class="news-lead">{{ news.summary }}</p>
+          </header>
+          
+          <div class="news-content" [innerHTML]="getSafeHtml(news.content)"></div>
+        </article>
+      </div>
+
+      <div class="col-lg-4">
+        <aside class="news-sidebar">
+          <div class="sidebar-header">
+            <h4>Tin tức khác</h4>
+          </div>
+
+          <ng-container *ngIf="relatedNews.length > 0; else noRelatedNews">
+            <div class="sidebar-item" *ngFor="let relNews of relatedNews" (click)="viewRelatedNews(relNews.id)">
+              <div class="sidebar-thumb" [ngClass]="{'placeholder': !relNews.featured_image}">
+                <img *ngIf="relNews.featured_image" 
+                     [src]="getImageUrl(relNews.featured_image)" 
+                     [alt]="relNews.title">
+                <span *ngIf="!relNews.featured_image">{{ relNews.title ? relNews.title.charAt(0) : 'N' }}</span>
+              </div>
+              <div class="sidebar-info">
+                <h5>{{ relNews.title }}</h5>
+                <p>{{ relNews.summary ? (relNews.summary.length > 110 ? (relNews.summary | slice:0:110) + '...' : relNews.summary) : 'Xem chi tiết' }}</p>
+                <small><i class="pi pi-eye"></i> {{ relNews.views }} lượt xem</small>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #noRelatedNews>
+            <p class="text-muted mb-0">Chưa có bài viết liên quan.</p>
+          </ng-template>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!isLoading && !news" class="text-center my-5">
+      <h3>Không tìm thấy bài viết</h3>
+      <button class="btn btn-danger mt-3" (click)="goBack()">Quay lại danh sách tin tức</button>
+    </div>
+  </div>
+</section>
+
